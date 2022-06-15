@@ -1,0 +1,8 @@
+[package]
+name = "ipcalc"
+version = "0.1.0"
+edition = "2021"
+description = "ipcalc provides a simple way to calculate IP information for a host"
+license = "MIT"
+
+[dependencies]
