@@ -18,4 +18,4 @@ test-style:
 
 .PHONY: test-lint
 test-lint:
-	$(CARGO_BIN) clippy
+	$(CARGO_BIN) clippy -- -D warnings
