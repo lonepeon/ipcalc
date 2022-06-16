@@ -1,3 +1,6 @@
+mod ipv4;
+
+use ipv4::IPv4;
 use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -7,10 +10,13 @@ pub enum CIDRParsingError {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct CIDR([u8; 4], u8);
+pub struct CIDR {
+    pub ip: IPv4,
+    pub mask: u8,
+}
 
 impl CIDR {
-    pub fn parse(raw: &str) -> Result<CIDR, CIDRParsingError> {
+    pub fn parse(raw: &str) -> Result<Self, CIDRParsingError> {
         let values: Vec<&str> = raw.split('/').collect();
         if values.len() > 2 {
             return Err(CIDRParsingError::InvalidHostFormat);
@@ -34,7 +40,10 @@ impl CIDR {
             32
         };
 
-        Ok(CIDR(ip.octets(), mask))
+        Ok(Self {
+            ip: IPv4::new(ip),
+            mask,
+        })
     }
 }
 
