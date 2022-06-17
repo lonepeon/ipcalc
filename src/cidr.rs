@@ -64,6 +64,10 @@ impl CIDR {
     pub fn last_address(&self) -> ipv4::IPv4 {
         self.mask.last_address(&self.ip)
     }
+
+    pub fn broadcast_address(&self) -> ipv4::IPv4 {
+        self.mask.broadcast_address(&self.ip)
+    }
 }
 
 #[cfg(test)]
@@ -126,5 +130,13 @@ mod tests {
         let last_address = "10.0.10.254".parse::<ipv4::IPv4>().unwrap();
 
         assert_eq!(last_address, address.last_address())
+    }
+
+    #[test]
+    fn broadcast_address() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let broadcast_address = "10.0.10.255".parse::<ipv4::IPv4>().unwrap();
+
+        assert_eq!(broadcast_address, address.broadcast_address())
     }
 }

@@ -88,12 +88,23 @@ impl Mask {
     }
 
     pub fn last_address(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
-        let network_address = (ip.octets() & self.0) + (self.wildcard().0 - 1);
+        let address = (ip.octets() & self.0) + (self.wildcard().0 - 1);
 
-        let a = (network_address >> 24 & 0xFF) as u8;
-        let b = (network_address >> 16 & 0xFF) as u8;
-        let c = (network_address >> 8 & 0xFF) as u8;
-        let d = (network_address & 0xFF) as u8;
+        let a = (address >> 24 & 0xFF) as u8;
+        let b = (address >> 16 & 0xFF) as u8;
+        let c = (address >> 8 & 0xFF) as u8;
+        let d = (address & 0xFF) as u8;
+
+        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+    }
+
+    pub fn broadcast_address(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+        let address = (ip.octets() & self.0) + self.wildcard().0;
+
+        let a = (address >> 24 & 0xFF) as u8;
+        let b = (address >> 16 & 0xFF) as u8;
+        let c = (address >> 8 & 0xFF) as u8;
+        let d = (address & 0xFF) as u8;
 
         ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
@@ -195,5 +206,14 @@ mod tests {
         let last_address = "10.42.12.254".parse::<ipv4::IPv4>().unwrap();
 
         assert_eq!(last_address, mask.last_address(&host_address))
+    }
+
+    #[test]
+    fn broadcast_address() {
+        let mask = Mask::new(24).unwrap();
+        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
+        let broadcast_address = "10.42.12.255".parse::<ipv4::IPv4>().unwrap();
+
+        assert_eq!(broadcast_address, mask.broadcast_address(&host_address))
     }
 }
