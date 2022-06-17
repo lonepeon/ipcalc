@@ -76,6 +76,10 @@ impl CIDR {
     pub fn class(&self) -> ipv4::IPClass {
         self.ip.class()
     }
+
+    pub fn kind(&self) -> ipv4::IPKind {
+        self.ip.kind()
+    }
 }
 
 #[cfg(test)]
@@ -160,5 +164,12 @@ mod tests {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
 
         assert_eq!(ipv4::IPClass::A, address.class())
+    }
+
+    #[test]
+    fn kind() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+
+        assert_eq!(ipv4::IPKind::Private, address.kind())
     }
 }

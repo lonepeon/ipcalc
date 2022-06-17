@@ -2,6 +2,25 @@ use core::fmt;
 use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum IPKind {
+    Private,
+    Public,
+    Special,
+}
+
+impl fmt::Display for IPKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let val = match self {
+            IPKind::Private => "Private Internet",
+            IPKind::Public => "Public Internet",
+            IPKind::Special => "Special",
+        };
+
+        write!(f, "{}", val)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum IPClass {
     A,
     B,
@@ -79,7 +98,7 @@ impl IPv4 {
 
     pub fn class(&self) -> IPClass {
         let octets = self.octets();
-        let first_octet = octets >> 24;
+        let first_octet = (octets >> 24 & 0xFF) as u8;
 
         if first_octet < 128 {
             return IPClass::A;
@@ -99,11 +118,39 @@ impl IPv4 {
 
         IPClass::E
     }
+
+    pub fn kind(&self) -> IPKind {
+        let octets = self.octets();
+        let first_octet = (octets >> 24 & 0xFF) as u8;
+        let second_octet = (octets >> 16 & 0xFF) as u8;
+
+        if first_octet == 10 {
+            return IPKind::Private;
+        }
+
+        if first_octet == 169 && second_octet == 254 {
+            return IPKind::Private;
+        }
+
+        if first_octet == 172 && (16..=31).contains(&second_octet) {
+            return IPKind::Private;
+        }
+
+        if first_octet == 192 && second_octet == 168 {
+            return IPKind::Private;
+        }
+
+        if first_octet == 127 {
+            return IPKind::Special;
+        }
+
+        IPKind::Public
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{IPClass, IPParsingError, IPv4};
+    use super::{IPClass, IPKind, IPParsingError, IPv4};
     use std::net;
 
     #[test]
@@ -181,5 +228,60 @@ mod tests {
 
         let address = "255.255.255.255".parse::<IPv4>().unwrap();
         assert_eq!(IPClass::E, address.class());
+    }
+
+    #[test]
+    fn kind_private() {
+        let address = "10.0.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+        let address = "10.255.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+
+        let address = "169.254.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+
+        let address = "172.16.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+        let address = "172.31.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+
+        let address = "192.168.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Private, address.kind());
+    }
+
+    #[test]
+    fn kind_public() {
+        let address = "9.0.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+        let address = "11.0.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+
+        let address = "126.255.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+        let address = "128.0.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+
+        let address = "169.253.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+        let address = "169.255.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+
+        let address = "172.15.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+        let address = "172.32.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+
+        let address = "192.167.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+        let address = "192.169.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Public, address.kind());
+    }
+
+    #[test]
+    fn kind_special() {
+        let address = "127.0.9.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special, address.kind());
+        let address = "127.255.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special, address.kind());
     }
 }
