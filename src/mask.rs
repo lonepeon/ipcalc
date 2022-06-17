@@ -1,4 +1,6 @@
+use crate::ipv4;
 use core::fmt;
+use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum MaskParsingError {
@@ -6,7 +8,7 @@ pub enum MaskParsingError {
     InvalidFormat,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub struct Mask(u32);
 
 impl fmt::Display for Mask {
@@ -35,7 +37,7 @@ impl std::str::FromStr for Mask {
 
 impl Mask {
     pub fn new(value: u8) -> Result<Self, MaskParsingError> {
-        if value == 0 || value > 32 {
+        if value > 32 {
             return Err(MaskParsingError::InvalidRange);
         }
 
@@ -63,6 +65,17 @@ impl Mask {
         Mask(wildcard)
     }
 
+    pub fn apply(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+        let network_address = ip.octets() & self.0;
+
+        let a = (network_address >> 24 & 0xFF) as u8;
+        let b = (network_address >> 16 & 0xFF) as u8;
+        let c = (network_address >> 8 & 0xFF) as u8;
+        let d = (network_address & 0xFF) as u8;
+
+        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+    }
+
     fn group_octets(value: u32) -> [u8; 4] {
         let a = (value >> 24 & 0xFF) as u8;
         let b = (value >> 16 & 0xFF) as u8;
@@ -75,6 +88,8 @@ impl Mask {
 
 #[cfg(test)]
 mod tests {
+    use crate::ipv4;
+
     use super::{Mask, MaskParsingError};
 
     #[test]
@@ -131,5 +146,14 @@ mod tests {
     #[test]
     fn get_wildcard() {
         assert_eq!(Mask(0x000000FF), Mask::new(24).unwrap().wildcard())
+    }
+
+    #[test]
+    fn apply() {
+        let mask = Mask::new(24).unwrap();
+        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
+        let network_address = "10.42.12.0".parse::<ipv4::IPv4>().unwrap();
+
+        assert_eq!(network_address, mask.apply(&host_address));
     }
 }

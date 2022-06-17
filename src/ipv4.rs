@@ -42,6 +42,17 @@ impl IPv4 {
     pub fn new(addr: net::Ipv4Addr) -> Self {
         Self(addr)
     }
+
+    pub fn octets(&self) -> u32 {
+        let octets = self.0.octets();
+
+        let mut value = octets[0] as u32;
+        value = value << 8 | octets[1] as u32;
+        value = value << 8 | octets[2] as u32;
+        value = value << 8 | octets[3] as u32;
+
+        value
+    }
 }
 
 #[cfg(test)]
@@ -73,5 +84,11 @@ mod tests {
             Err(IPParsingError::InvalidFormat),
             "512.168.13.37".parse::<IPv4>()
         )
+    }
+
+    #[test]
+    fn octets() {
+        let address = "192.168.5.42".parse::<IPv4>().unwrap();
+        assert_eq!(0b11000000101010000000010100101010, address.octets())
     }
 }
