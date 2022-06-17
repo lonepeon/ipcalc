@@ -1,6 +1,8 @@
 mod ipv4;
+mod mask;
 
 use ipv4::IPv4;
+use mask::Mask;
 use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -12,7 +14,7 @@ pub enum CIDRParsingError {
 #[derive(Debug, PartialEq, Eq)]
 pub struct CIDR {
     pub ip: IPv4,
-    pub mask: u8,
+    pub mask: Mask,
 }
 
 impl CIDR {
@@ -26,18 +28,12 @@ impl CIDR {
             .parse::<net::Ipv4Addr>()
             .map_err(|_| CIDRParsingError::InvalidHostFormat)?;
 
-        let mask: u8 = if values.len() == 2 {
-            let mask: u8 = values[1]
-                .parse()
-                .map_err(|_| CIDRParsingError::InvalidMaskLength)?;
-
-            if mask == 0 || mask > 32 {
-                return Err(CIDRParsingError::InvalidMaskLength);
-            }
-
-            mask
+        let mask = if values.len() == 2 {
+            values[1]
+                .parse::<Mask>()
+                .map_err(|_| CIDRParsingError::InvalidMaskLength)?
         } else {
-            32
+            Mask::new(32).unwrap()
         };
 
         Ok(Self {
