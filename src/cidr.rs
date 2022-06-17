@@ -68,6 +68,14 @@ impl CIDR {
     pub fn broadcast_address(&self) -> ipv4::IPv4 {
         self.mask.broadcast_address(&self.ip)
     }
+
+    pub fn hosts(&self) -> u32 {
+        self.mask.hosts()
+    }
+
+    pub fn class(&self) -> ipv4::IPClass {
+        self.ip.class()
+    }
 }
 
 #[cfg(test)]
@@ -138,5 +146,19 @@ mod tests {
         let broadcast_address = "10.0.10.255".parse::<ipv4::IPv4>().unwrap();
 
         assert_eq!(broadcast_address, address.broadcast_address())
+    }
+
+    #[test]
+    fn hosts() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+
+        assert_eq!(254, address.hosts())
+    }
+
+    #[test]
+    fn class() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+
+        assert_eq!(ipv4::IPClass::A, address.class())
     }
 }

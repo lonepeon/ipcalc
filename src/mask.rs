@@ -109,6 +109,10 @@ impl Mask {
         ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
 
+    pub fn hosts(&self) -> u32 {
+        self.wildcard().0 - 1
+    }
+
     fn group_octets(value: u32) -> [u8; 4] {
         let a = (value >> 24 & 0xFF) as u8;
         let b = (value >> 16 & 0xFF) as u8;
@@ -215,5 +219,12 @@ mod tests {
         let broadcast_address = "10.42.12.255".parse::<ipv4::IPv4>().unwrap();
 
         assert_eq!(broadcast_address, mask.broadcast_address(&host_address))
+    }
+
+    #[test]
+    fn hosts() {
+        let mask = Mask::new(24).unwrap();
+
+        assert_eq!(254, mask.hosts())
     }
 }

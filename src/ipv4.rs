@@ -2,6 +2,29 @@ use core::fmt;
 use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum IPClass {
+    A,
+    B,
+    C,
+    D,
+    E,
+}
+
+impl fmt::Display for IPClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let val = match self {
+            IPClass::A => "A",
+            IPClass::B => "B",
+            IPClass::C => "C",
+            IPClass::D => "D",
+            IPClass::E => "E",
+        };
+
+        write!(f, "{}", val)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum IPParsingError {
     InvalidFormat,
 }
@@ -53,11 +76,34 @@ impl IPv4 {
 
         value
     }
+
+    pub fn class(&self) -> IPClass {
+        let octets = self.octets();
+        let first_octet = octets >> 24;
+
+        if first_octet < 128 {
+            return IPClass::A;
+        }
+
+        if first_octet < 192 {
+            return IPClass::B;
+        }
+
+        if first_octet < 224 {
+            return IPClass::C;
+        }
+
+        if first_octet < 240 {
+            return IPClass::D;
+        }
+
+        IPClass::E
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{IPParsingError, IPv4};
+    use super::{IPClass, IPParsingError, IPv4};
     use std::net;
 
     #[test]
@@ -90,5 +136,50 @@ mod tests {
     fn octets() {
         let address = "192.168.5.42".parse::<IPv4>().unwrap();
         assert_eq!(0b11000000101010000000010100101010, address.octets())
+    }
+
+    #[test]
+    fn class_a() {
+        let address = "0.0.0.0".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::A, address.class());
+
+        let address = "127.255.255.255".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::A, address.class());
+    }
+
+    #[test]
+    fn class_b() {
+        let address = "128.0.0.0".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::B, address.class());
+
+        let address = "191.255.255.255".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::B, address.class());
+    }
+
+    #[test]
+    fn class_c() {
+        let address = "192.0.0.0".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::C, address.class());
+
+        let address = "223.255.255.255".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::C, address.class());
+    }
+
+    #[test]
+    fn class_d() {
+        let address = "224.0.0.0".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::D, address.class());
+
+        let address = "239.255.255.255".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::D, address.class());
+    }
+
+    #[test]
+    fn class_e() {
+        let address = "240.0.0.0".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::E, address.class());
+
+        let address = "255.255.255.255".parse::<IPv4>().unwrap();
+        assert_eq!(IPClass::E, address.class());
     }
 }

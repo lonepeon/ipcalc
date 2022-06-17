@@ -36,6 +36,11 @@ fn main() {
                 "Broadcast: {:18}   {:b}",
                 format!("{}", cidr.broadcast_address()),
                 cidr.broadcast_address()
+            );
+            println!(
+                "Hosts/Net: {:10}           class {}",
+                format!("{}", cidr.hosts()),
+                cidr.class()
             )
         }
         Err(CIDRParsingError::InvalidMaskLength) => println!("masklength must be between 0 and 32"),
