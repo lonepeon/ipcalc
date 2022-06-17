@@ -60,6 +60,10 @@ impl CIDR {
     pub fn first_address(&self) -> ipv4::IPv4 {
         self.mask.first_address(&self.ip)
     }
+
+    pub fn last_address(&self) -> ipv4::IPv4 {
+        self.mask.last_address(&self.ip)
+    }
 }
 
 #[cfg(test)]
@@ -114,5 +118,13 @@ mod tests {
         let first_address = "10.0.10.1".parse::<ipv4::IPv4>().unwrap();
 
         assert_eq!(first_address, address.first_address())
+    }
+
+    #[test]
+    fn last_address() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let last_address = "10.0.10.254".parse::<ipv4::IPv4>().unwrap();
+
+        assert_eq!(last_address, address.last_address())
     }
 }

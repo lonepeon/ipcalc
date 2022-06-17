@@ -26,6 +26,11 @@ fn main() {
                 "HostMin:  {:18}   {:b}",
                 format!("{}", cidr.first_address()),
                 cidr.first_address()
+            );
+            println!(
+                "HostMax:  {:18}   {:b}",
+                format!("{}", cidr.last_address()),
+                cidr.last_address()
             )
         }
         Err(CIDRParsingError::InvalidMaskLength) => println!("masklength must be between 0 and 32"),
