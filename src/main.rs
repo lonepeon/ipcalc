@@ -14,11 +14,18 @@ fn main() {
                 format!("{}", cidr.mask.wildcard()),
                 cidr.mask.wildcard(),
             );
+
             println!("=>");
+
             println!(
                 "Network:  {:18}   {:b}",
                 format!("{}", cidr.network()),
                 cidr.network().ip
+            );
+            println!(
+                "HostMin:  {:18}   {:b}",
+                format!("{}", cidr.first_address()),
+                cidr.first_address()
             )
         }
         Err(CIDRParsingError::InvalidMaskLength) => println!("masklength must be between 0 and 32"),

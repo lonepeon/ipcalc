@@ -1,4 +1,4 @@
-use crate::ipv4::IPv4;
+use crate::ipv4::{self, IPv4};
 use crate::mask::Mask;
 use core::fmt;
 use std::net;
@@ -56,10 +56,16 @@ impl CIDR {
             mask: self.mask,
         }
     }
+
+    pub fn first_address(&self) -> ipv4::IPv4 {
+        self.mask.first_address(&self.ip)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::ipv4;
+
     use super::{CIDRParsingError, CIDR};
 
     #[test]
@@ -100,5 +106,13 @@ mod tests {
         let expected = "10.0.10.0/24".parse::<CIDR>().unwrap();
 
         assert_eq!(expected, address.network())
+    }
+
+    #[test]
+    fn first_address() {
+        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let first_address = "10.0.10.1".parse::<ipv4::IPv4>().unwrap();
+
+        assert_eq!(first_address, address.first_address())
     }
 }
