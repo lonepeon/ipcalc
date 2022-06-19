@@ -1,5 +1,3 @@
-mod cidr;
-mod ipv4;
-mod mask;
+mod net;
 
-pub use self::cidr::{CIDRParsingError, CIDR};
+pub use self::net::{CIDRParsingError, CIDR};

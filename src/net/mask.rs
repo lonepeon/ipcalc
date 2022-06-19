@@ -1,4 +1,4 @@
-use crate::ipv4;
+use crate::net::IPv4;
 use core::fmt;
 use std::net;
 
@@ -65,7 +65,7 @@ impl Mask {
         Mask(wildcard)
     }
 
-    pub fn apply(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+    pub fn apply(&self, ip: &IPv4) -> IPv4 {
         let network_address = ip.octets() & self.0;
 
         let a = (network_address >> 24 & 0xFF) as u8;
@@ -73,10 +73,10 @@ impl Mask {
         let c = (network_address >> 8 & 0xFF) as u8;
         let d = (network_address & 0xFF) as u8;
 
-        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
 
-    pub fn first_address(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+    pub fn first_address(&self, ip: &IPv4) -> IPv4 {
         let network_address = (ip.octets() & self.0) + 1;
 
         let a = (network_address >> 24 & 0xFF) as u8;
@@ -84,10 +84,10 @@ impl Mask {
         let c = (network_address >> 8 & 0xFF) as u8;
         let d = (network_address & 0xFF) as u8;
 
-        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
 
-    pub fn last_address(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+    pub fn last_address(&self, ip: &IPv4) -> IPv4 {
         let address = (ip.octets() & self.0) + (self.wildcard().0 - 1);
 
         let a = (address >> 24 & 0xFF) as u8;
@@ -95,10 +95,10 @@ impl Mask {
         let c = (address >> 8 & 0xFF) as u8;
         let d = (address & 0xFF) as u8;
 
-        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
 
-    pub fn broadcast_address(&self, ip: &ipv4::IPv4) -> ipv4::IPv4 {
+    pub fn broadcast_address(&self, ip: &IPv4) -> IPv4 {
         let address = (ip.octets() & self.0) + self.wildcard().0;
 
         let a = (address >> 24 & 0xFF) as u8;
@@ -106,7 +106,7 @@ impl Mask {
         let c = (address >> 8 & 0xFF) as u8;
         let d = (address & 0xFF) as u8;
 
-        ipv4::IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
     }
 
     pub fn hosts(&self) -> u32 {
@@ -125,9 +125,8 @@ impl Mask {
 
 #[cfg(test)]
 mod tests {
-    use crate::ipv4;
-
     use super::{Mask, MaskParsingError};
+    use crate::net;
 
     #[test]
     fn parse_mask_negative() {
@@ -188,8 +187,8 @@ mod tests {
     #[test]
     fn apply() {
         let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
-        let network_address = "10.42.12.0".parse::<ipv4::IPv4>().unwrap();
+        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
+        let network_address = "10.42.12.0".parse::<net::IPv4>().unwrap();
 
         assert_eq!(network_address, mask.apply(&host_address));
     }
@@ -197,8 +196,8 @@ mod tests {
     #[test]
     fn first_address() {
         let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
-        let first_address = "10.42.12.1".parse::<ipv4::IPv4>().unwrap();
+        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
+        let first_address = "10.42.12.1".parse::<net::IPv4>().unwrap();
 
         assert_eq!(first_address, mask.first_address(&host_address))
     }
@@ -206,8 +205,8 @@ mod tests {
     #[test]
     fn last_address() {
         let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
-        let last_address = "10.42.12.254".parse::<ipv4::IPv4>().unwrap();
+        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
+        let last_address = "10.42.12.254".parse::<net::IPv4>().unwrap();
 
         assert_eq!(last_address, mask.last_address(&host_address))
     }
@@ -215,8 +214,8 @@ mod tests {
     #[test]
     fn broadcast_address() {
         let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<ipv4::IPv4>().unwrap();
-        let broadcast_address = "10.42.12.255".parse::<ipv4::IPv4>().unwrap();
+        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
+        let broadcast_address = "10.42.12.255".parse::<net::IPv4>().unwrap();
 
         assert_eq!(broadcast_address, mask.broadcast_address(&host_address))
     }

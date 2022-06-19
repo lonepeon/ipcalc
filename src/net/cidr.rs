@@ -1,5 +1,7 @@
-use crate::ipv4::{self, IPv4};
-use crate::mask::Mask;
+use crate::net::IPClass;
+use crate::net::IPKind;
+use crate::net::IPv4;
+use crate::net::Mask;
 use core::fmt;
 use std::net;
 
@@ -57,15 +59,15 @@ impl CIDR {
         }
     }
 
-    pub fn first_address(&self) -> ipv4::IPv4 {
+    pub fn first_address(&self) -> IPv4 {
         self.mask.first_address(&self.ip)
     }
 
-    pub fn last_address(&self) -> ipv4::IPv4 {
+    pub fn last_address(&self) -> IPv4 {
         self.mask.last_address(&self.ip)
     }
 
-    pub fn broadcast_address(&self) -> ipv4::IPv4 {
+    pub fn broadcast_address(&self) -> IPv4 {
         self.mask.broadcast_address(&self.ip)
     }
 
@@ -73,20 +75,19 @@ impl CIDR {
         self.mask.hosts()
     }
 
-    pub fn class(&self) -> ipv4::IPClass {
+    pub fn class(&self) -> IPClass {
         self.ip.class()
     }
 
-    pub fn kind(&self) -> ipv4::IPKind {
+    pub fn kind(&self) -> IPKind {
         self.ip.kind()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ipv4;
-
     use super::{CIDRParsingError, CIDR};
+    use crate::net;
 
     #[test]
     fn parse_mask_negative() {
@@ -131,7 +132,7 @@ mod tests {
     #[test]
     fn first_address() {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let first_address = "10.0.10.1".parse::<ipv4::IPv4>().unwrap();
+        let first_address = "10.0.10.1".parse::<net::IPv4>().unwrap();
 
         assert_eq!(first_address, address.first_address())
     }
@@ -139,7 +140,7 @@ mod tests {
     #[test]
     fn last_address() {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let last_address = "10.0.10.254".parse::<ipv4::IPv4>().unwrap();
+        let last_address = "10.0.10.254".parse::<net::IPv4>().unwrap();
 
         assert_eq!(last_address, address.last_address())
     }
@@ -147,7 +148,7 @@ mod tests {
     #[test]
     fn broadcast_address() {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let broadcast_address = "10.0.10.255".parse::<ipv4::IPv4>().unwrap();
+        let broadcast_address = "10.0.10.255".parse::<net::IPv4>().unwrap();
 
         assert_eq!(broadcast_address, address.broadcast_address())
     }
@@ -163,13 +164,13 @@ mod tests {
     fn class() {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
 
-        assert_eq!(ipv4::IPClass::A, address.class())
+        assert_eq!(net::IPClass::A, address.class())
     }
 
     #[test]
     fn kind() {
         let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
 
-        assert_eq!(ipv4::IPKind::Private, address.kind())
+        assert_eq!(net::IPKind::Private, address.kind())
     }
 }
