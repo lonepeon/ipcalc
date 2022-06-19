@@ -1,6 +1,5 @@
 use crate::net::IPv4;
 use core::fmt;
-use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum MaskParsingError {
@@ -13,14 +12,14 @@ pub struct Mask(u32);
 
 impl fmt::Display for Mask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let [a, b, c, d] = Mask::group_octets(self.0);
+        let [a, b, c, d] = crate::net::group_octets(self.0);
         write!(f, "{}.{}.{}.{}", a, b, c, d)
     }
 }
 
 impl fmt::Binary for Mask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let [a, b, c, d] = Mask::group_octets(self.0);
+        let [a, b, c, d] = crate::net::group_octets(self.0);
         write!(f, "{:08b}.{:08b}.{:08b}.{:08b}", a, b, c, d)
     }
 }
@@ -61,65 +60,31 @@ impl Mask {
     }
 
     pub fn wildcard(&self) -> Mask {
-        let wildcard = self.0 ^ 0xFFFFFFFF;
-        Mask(wildcard)
+        Mask(!self.0)
     }
 
-    pub fn apply(&self, ip: &IPv4) -> IPv4 {
+    pub fn network_address(&self, ip: &IPv4) -> IPv4 {
         let network_address = ip.octets() & self.0;
-
-        let a = (network_address >> 24 & 0xFF) as u8;
-        let b = (network_address >> 16 & 0xFF) as u8;
-        let c = (network_address >> 8 & 0xFF) as u8;
-        let d = (network_address & 0xFF) as u8;
-
-        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new_from_raw_bytes(network_address)
     }
 
     pub fn first_address(&self, ip: &IPv4) -> IPv4 {
-        let network_address = (ip.octets() & self.0) + 1;
-
-        let a = (network_address >> 24 & 0xFF) as u8;
-        let b = (network_address >> 16 & 0xFF) as u8;
-        let c = (network_address >> 8 & 0xFF) as u8;
-        let d = (network_address & 0xFF) as u8;
-
-        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        let address = (ip.octets() & self.0) + 1;
+        IPv4::new_from_raw_bytes(address)
     }
 
     pub fn last_address(&self, ip: &IPv4) -> IPv4 {
         let address = (ip.octets() & self.0) + (self.wildcard().0 - 1);
-
-        let a = (address >> 24 & 0xFF) as u8;
-        let b = (address >> 16 & 0xFF) as u8;
-        let c = (address >> 8 & 0xFF) as u8;
-        let d = (address & 0xFF) as u8;
-
-        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new_from_raw_bytes(address)
     }
 
     pub fn broadcast_address(&self, ip: &IPv4) -> IPv4 {
         let address = (ip.octets() & self.0) + self.wildcard().0;
-
-        let a = (address >> 24 & 0xFF) as u8;
-        let b = (address >> 16 & 0xFF) as u8;
-        let c = (address >> 8 & 0xFF) as u8;
-        let d = (address & 0xFF) as u8;
-
-        IPv4::new(net::Ipv4Addr::new(a, b, c, d))
+        IPv4::new_from_raw_bytes(address)
     }
 
     pub fn hosts(&self) -> u32 {
         self.wildcard().0 - 1
-    }
-
-    fn group_octets(value: u32) -> [u8; 4] {
-        let a = (value >> 24 & 0xFF) as u8;
-        let b = (value >> 16 & 0xFF) as u8;
-        let c = (value >> 8 & 0xFF) as u8;
-        let d = (value & 0xFF) as u8;
-
-        [a, b, c, d]
     }
 }
 
@@ -190,7 +155,7 @@ mod tests {
         let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
         let network_address = "10.42.12.0".parse::<net::IPv4>().unwrap();
 
-        assert_eq!(network_address, mask.apply(&host_address));
+        assert_eq!(network_address, mask.network_address(&host_address));
     }
 
     #[test]

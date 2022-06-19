@@ -9,22 +9,19 @@ pub enum IPParsingError {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct IPv4(net::Ipv4Addr);
+pub struct IPv4(u32);
 
 impl fmt::Display for IPv4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
+        let [a, b, c, d] = crate::net::group_octets(self.0);
+        write!(f, "{}.{}.{}.{}", a, b, c, d)
     }
 }
 
 impl fmt::Binary for IPv4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let octets = self.0.octets();
-        write!(
-            f,
-            "{:08b}.{:08b}.{:08b}.{:08b}",
-            octets[0], octets[1], octets[2], octets[3]
-        )
+        let [a, b, c, d] = crate::net::group_octets(self.0);
+        write!(f, "{:08b}.{:08b}.{:08b}.{:08b}", a, b, c, d)
     }
 }
 
@@ -36,24 +33,28 @@ impl std::str::FromStr for IPv4 {
             .parse::<net::Ipv4Addr>()
             .map_err(|_| IPParsingError::InvalidFormat)?;
 
-        Ok(Self::new(net_ip))
+        let octets = net_ip.octets();
+
+        Ok(Self::new(octets[0], octets[1], octets[2], octets[3]))
     }
 }
 
 impl IPv4 {
-    pub fn new(addr: net::Ipv4Addr) -> Self {
+    pub fn new(a: u8, b: u8, c: u8, d: u8) -> Self {
+        let mut addr = (a as u32) << 24;
+        addr += (b as u32) << 16;
+        addr += (c as u32) << 8;
+        addr += d as u32;
+
+        Self(addr)
+    }
+
+    pub fn new_from_raw_bytes(addr: u32) -> Self {
         Self(addr)
     }
 
     pub fn octets(&self) -> u32 {
-        let octets = self.0.octets();
-
-        let mut value = octets[0] as u32;
-        value = value << 8 | octets[1] as u32;
-        value = value << 8 | octets[2] as u32;
-        value = value << 8 | octets[3] as u32;
-
-        value
+        self.0
     }
 
     pub fn class(&self) -> IPClass {
@@ -111,24 +112,23 @@ impl IPv4 {
 #[cfg(test)]
 mod tests {
     use super::{IPClass, IPKind, IPParsingError, IPv4};
-    use std::net;
 
     #[test]
     fn string_display() {
-        let ip = IPv4::new(net::Ipv4Addr::new(192, 168, 5, 42));
+        let ip = IPv4::new(192, 168, 5, 42);
         assert_eq!("192.168.5.42", format!("{}", ip))
     }
 
     #[test]
     fn binary_display() {
-        let ip = IPv4::new(net::Ipv4Addr::new(192, 168, 5, 42));
+        let ip = IPv4::new(192, 168, 5, 42);
         assert_eq!("11000000.10101000.00000101.00101010", format!("{:b}", ip))
     }
 
     #[test]
     fn parse_success() {
         let ip = "192.168.13.37".parse::<IPv4>().unwrap();
-        assert_eq!(IPv4::new(net::Ipv4Addr::new(192, 168, 13, 37)), ip)
+        assert_eq!(IPv4::new(192, 168, 13, 37), ip)
     }
 
     #[test]

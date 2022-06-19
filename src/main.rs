@@ -3,7 +3,11 @@ use ipcalc::{CIDRParsingError, CIDR};
 fn main() {
     match "10.0.22.12/20".parse::<CIDR>() {
         Ok(cidr) => {
-            println!("Address:   {:15}      {:b}", cidr.ip, cidr.ip);
+            println!(
+                "Address:   {:15}      {:b}",
+                format!("{}", cidr.ip),
+                cidr.ip
+            );
             println!(
                 "Netmask:   {:20} {:b}",
                 format!("{} = {}", cidr.mask, cidr.mask.len()),

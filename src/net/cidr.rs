@@ -3,7 +3,6 @@ use crate::net::IPKind;
 use crate::net::IPv4;
 use crate::net::Mask;
 use core::fmt;
-use std::net;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum CIDRParsingError {
@@ -33,7 +32,7 @@ impl std::str::FromStr for CIDR {
         }
 
         let ip = values[0]
-            .parse::<net::Ipv4Addr>()
+            .parse::<IPv4>()
             .map_err(|_| CIDRParsingError::InvalidHostFormat)?;
 
         let mask = if values.len() == 2 {
@@ -44,17 +43,14 @@ impl std::str::FromStr for CIDR {
             Mask::new(32).unwrap()
         };
 
-        Ok(Self {
-            ip: IPv4::new(ip),
-            mask,
-        })
+        Ok(Self { ip, mask })
     }
 }
 
 impl CIDR {
     pub fn network(&self) -> CIDR {
         CIDR {
-            ip: self.mask.apply(&self.ip),
+            ip: self.mask.network_address(&self.ip),
             mask: self.mask,
         }
     }
