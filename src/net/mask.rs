@@ -63,7 +63,7 @@ impl Mask {
         Mask(!self.0)
     }
 
-    pub fn network_address(&self, ip: &IPv4) -> IPv4 {
+    pub fn prefix(&self, ip: &IPv4) -> IPv4 {
         let network_address = ip.octets() & self.0;
         IPv4::new_from_raw_bytes(network_address)
     }
@@ -150,12 +150,12 @@ mod tests {
     }
 
     #[test]
-    fn apply() {
+    fn prefix() {
         let mask = Mask::new(24).unwrap();
         let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
         let network_address = "10.42.12.0".parse::<net::IPv4>().unwrap();
 
-        assert_eq!(network_address, mask.network_address(&host_address));
+        assert_eq!(network_address, mask.prefix(&host_address));
     }
 
     #[test]

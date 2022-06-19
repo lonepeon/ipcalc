@@ -50,7 +50,7 @@ impl std::str::FromStr for CIDR {
 impl CIDR {
     pub fn network(&self) -> CIDR {
         CIDR {
-            ip: self.mask.network_address(&self.ip),
+            ip: self.mask.prefix(&self.ip),
             mask: self.mask,
         }
     }
