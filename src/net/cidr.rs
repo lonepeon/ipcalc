@@ -48,6 +48,10 @@ impl std::str::FromStr for CIDR {
 }
 
 impl CIDR {
+    pub fn new(ip: IPv4, mask: Mask) -> Self {
+        Self { ip, mask }
+    }
+
     pub fn network(&self) -> CIDR {
         CIDR {
             ip: self.mask.prefix(&self.ip),
@@ -67,15 +71,15 @@ impl CIDR {
         self.mask.wildcard()
     }
 
-    pub fn first_address(&self) -> IPv4 {
+    pub fn first_address(&self) -> Option<IPv4> {
         self.mask.first_address(&self.ip)
     }
 
-    pub fn last_address(&self) -> IPv4 {
+    pub fn last_address(&self) -> Option<IPv4> {
         self.mask.last_address(&self.ip)
     }
 
-    pub fn broadcast_address(&self) -> IPv4 {
+    pub fn broadcast_address(&self) -> Option<IPv4> {
         self.mask.broadcast_address(&self.ip)
     }
 
@@ -95,7 +99,7 @@ impl CIDR {
 #[cfg(test)]
 mod tests {
     use super::{CIDRParsingError, CIDR};
-    use crate::net;
+    use crate::net::{IPClass, IPKind, IPv4, Mask};
 
     #[test]
     fn parse_mask_negative() {
@@ -131,54 +135,54 @@ mod tests {
 
     #[test]
     fn network() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let expected = "10.0.10.0/24".parse::<CIDR>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+        let expected = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
 
         assert_eq!(expected, address.network())
     }
 
     #[test]
     fn first_address() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let first_address = "10.0.10.1".parse::<net::IPv4>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+        let first_address = IPv4::new(10, 0, 10, 1);
 
-        assert_eq!(first_address, address.first_address())
+        assert_eq!(Some(first_address), address.first_address())
     }
 
     #[test]
     fn last_address() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let last_address = "10.0.10.254".parse::<net::IPv4>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+        let last_address = IPv4::new(10, 0, 10, 254);
 
-        assert_eq!(last_address, address.last_address())
+        assert_eq!(Some(last_address), address.last_address())
     }
 
     #[test]
     fn broadcast_address() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
-        let broadcast_address = "10.0.10.255".parse::<net::IPv4>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+        let broadcast_address = IPv4::new(10, 0, 10, 255);
 
-        assert_eq!(broadcast_address, address.broadcast_address())
+        assert_eq!(Some(broadcast_address), address.broadcast_address())
     }
 
     #[test]
     fn hosts() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
 
         assert_eq!(254, address.hosts())
     }
 
     #[test]
     fn class() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
 
-        assert_eq!(net::IPClass::A, address.class())
+        assert_eq!(IPClass::A, address.class())
     }
 
     #[test]
     fn kind() {
-        let address = "10.0.10.15/24".parse::<CIDR>().unwrap();
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
 
-        assert_eq!(net::IPKind::Private, address.kind())
+        assert_eq!(IPKind::Private, address.kind())
     }
 }

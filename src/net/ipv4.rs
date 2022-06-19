@@ -8,8 +8,18 @@ pub enum IPParsingError {
     InvalidFormat,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 pub struct IPv4(u32);
+
+impl fmt::Debug for IPv4 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self, f)?;
+        write!(f, " (")?;
+        fmt::Binary::fmt(&self, f)?;
+        write!(f, ")")?;
+        Ok(())
+    }
+}
 
 impl fmt::Display for IPv4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

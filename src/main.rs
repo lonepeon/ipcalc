@@ -27,19 +27,31 @@ fn main() {
                 cidr.network().ip(),
             );
             println!(
-                "HostMin:   {:18}   {:b}",
-                format!("{}", cidr.first_address()),
+                "HostMin:   {:18}   {}",
                 cidr.first_address()
+                    .map(|ip| format!("{}", ip))
+                    .unwrap_or_else(|| "n/a".to_string()),
+                cidr.first_address()
+                    .map(|ip| format!("{:b}", ip))
+                    .unwrap_or_else(|| "".to_string()),
             );
             println!(
-                "HostMax:   {:18}   {:b}",
-                format!("{}", cidr.last_address()),
+                "HostMax:   {:18}   {}",
                 cidr.last_address()
+                    .map(|ip| format!("{}", ip))
+                    .unwrap_or_else(|| "n/a".to_string()),
+                cidr.last_address()
+                    .map(|ip| format!("{:b}", ip))
+                    .unwrap_or_else(|| "".to_string()),
             );
             println!(
-                "Broadcast: {:18}   {:b}",
-                format!("{}", cidr.broadcast_address()),
+                "Broadcast: {:18}   {}",
                 cidr.broadcast_address()
+                    .map(|ip| format!("{}", ip))
+                    .unwrap_or_else(|| "n/a".to_string()),
+                cidr.broadcast_address()
+                    .map(|ip| format!("{:b}", ip))
+                    .unwrap_or_else(|| "".to_string()),
             );
             println!(
                 "Hosts/Net: {:10}           class {}, {}",

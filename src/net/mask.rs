@@ -40,7 +40,11 @@ impl Mask {
             return Err(MaskParsingError::InvalidRange);
         }
 
-        let mask: u32 = 0xFFFFFFFF << (32 - value);
+        let mut mask: u32 = 0;
+
+        if value > 0 {
+            mask = 0xFFFFFFFF << (32 - value);
+        }
 
         Ok(Self(mask))
     }
@@ -68,22 +72,37 @@ impl Mask {
         IPv4::new_from_raw_bytes(network_address)
     }
 
-    pub fn first_address(&self, ip: &IPv4) -> IPv4 {
+    pub fn first_address(&self, ip: &IPv4) -> Option<IPv4> {
+        if self.len() >= 31 {
+            return None;
+        }
+
         let address = (ip.octets() & self.0) + 1;
-        IPv4::new_from_raw_bytes(address)
+        Some(IPv4::new_from_raw_bytes(address))
     }
 
-    pub fn last_address(&self, ip: &IPv4) -> IPv4 {
+    pub fn last_address(&self, ip: &IPv4) -> Option<IPv4> {
+        if self.len() >= 31 {
+            return None;
+        }
+
         let address = (ip.octets() & self.0) + (self.wildcard().0 - 1);
-        IPv4::new_from_raw_bytes(address)
+        Some(IPv4::new_from_raw_bytes(address))
     }
 
-    pub fn broadcast_address(&self, ip: &IPv4) -> IPv4 {
+    pub fn broadcast_address(&self, ip: &IPv4) -> Option<IPv4> {
+        if self.len() >= 31 {
+            return None;
+        }
+
         let address = (ip.octets() & self.0) + self.wildcard().0;
-        IPv4::new_from_raw_bytes(address)
+        Some(IPv4::new_from_raw_bytes(address))
     }
 
     pub fn hosts(&self) -> u32 {
+        if self.len() == 32 {
+            return 1;
+        }
         self.wildcard().0 - 1
     }
 }
@@ -91,7 +110,7 @@ impl Mask {
 #[cfg(test)]
 mod tests {
     use super::{Mask, MaskParsingError};
-    use crate::net;
+    use crate::net::IPv4;
 
     #[test]
     fn parse_mask_negative() {
@@ -146,49 +165,108 @@ mod tests {
 
     #[test]
     fn get_wildcard() {
-        assert_eq!(Mask(0x000000FF), Mask::new(24).unwrap().wildcard())
+        assert_eq!(Mask(0x00000000), Mask::new(32).unwrap().wildcard());
+        assert_eq!(Mask(0x000000FF), Mask::new(24).unwrap().wildcard());
+        assert_eq!(Mask(0x0000FFFF), Mask::new(16).unwrap().wildcard());
+        assert_eq!(Mask(0x00FFFFFF), Mask::new(8).unwrap().wildcard());
+        assert_eq!(Mask(0xFFFFFFFF), Mask::new(0).unwrap().wildcard());
     }
 
     #[test]
     fn prefix() {
-        let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
-        let network_address = "10.42.12.0".parse::<net::IPv4>().unwrap();
+        let host_address = IPv4::new(10, 42, 180, 53);
 
-        assert_eq!(network_address, mask.prefix(&host_address));
+        let mask = Mask::new(32).unwrap();
+        assert_eq!(IPv4::new(10, 42, 180, 53), mask.prefix(&host_address));
+
+        let mask = Mask::new(24).unwrap();
+        assert_eq!(IPv4::new(10, 42, 180, 0), mask.prefix(&host_address));
+
+        let mask = Mask::new(20).unwrap();
+        assert_eq!(IPv4::new(10, 42, 176, 0), mask.prefix(&host_address));
+
+        let mask = Mask::new(16).unwrap();
+        assert_eq!(IPv4::new(10, 42, 0, 0), mask.prefix(&host_address));
+
+        let mask = Mask::new(0).unwrap();
+        assert_eq!(IPv4::new(0, 0, 0, 0), mask.prefix(&host_address));
     }
 
     #[test]
     fn first_address() {
-        let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
-        let first_address = "10.42.12.1".parse::<net::IPv4>().unwrap();
+        let host_address = IPv4::new(10, 42, 180, 53);
 
-        assert_eq!(first_address, mask.first_address(&host_address))
+        let mask = Mask::new(32).unwrap();
+        assert_eq!(None, mask.first_address(&host_address));
+
+        let mask = Mask::new(24).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 180, 1)),
+            mask.first_address(&host_address)
+        );
+
+        let mask = Mask::new(20).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 176, 1)),
+            mask.first_address(&host_address)
+        );
     }
 
     #[test]
     fn last_address() {
-        let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
-        let last_address = "10.42.12.254".parse::<net::IPv4>().unwrap();
+        let host_address = IPv4::new(10, 42, 180, 53);
 
-        assert_eq!(last_address, mask.last_address(&host_address))
+        let mask = Mask::new(32).unwrap();
+        assert_eq!(None, mask.last_address(&host_address));
+
+        let mask = Mask::new(24).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 180, 254)),
+            mask.last_address(&host_address)
+        );
+
+        let mask = Mask::new(20).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 191, 254)),
+            mask.last_address(&host_address)
+        );
     }
 
     #[test]
     fn broadcast_address() {
-        let mask = Mask::new(24).unwrap();
-        let host_address = "10.42.12.53".parse::<net::IPv4>().unwrap();
-        let broadcast_address = "10.42.12.255".parse::<net::IPv4>().unwrap();
+        let host_address = IPv4::new(10, 42, 180, 53);
 
-        assert_eq!(broadcast_address, mask.broadcast_address(&host_address))
+        let mask = Mask::new(32).unwrap();
+        assert_eq!(None, mask.broadcast_address(&host_address));
+
+        let mask = Mask::new(24).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 180, 255)),
+            mask.broadcast_address(&host_address)
+        );
+
+        let mask = Mask::new(20).unwrap();
+        assert_eq!(
+            Some(IPv4::new(10, 42, 191, 255)),
+            mask.broadcast_address(&host_address)
+        );
     }
 
     #[test]
     fn hosts() {
-        let mask = Mask::new(24).unwrap();
+        let mask = Mask::new(32).unwrap();
+        assert_eq!(1, mask.hosts());
 
-        assert_eq!(254, mask.hosts())
+        let mask = Mask::new(24).unwrap();
+        assert_eq!(254, mask.hosts());
+
+        let mask = Mask::new(20).unwrap();
+        assert_eq!(4094, mask.hosts());
+
+        let mask = Mask::new(16).unwrap();
+        assert_eq!(65534, mask.hosts());
+
+        let mask = Mask::new(8).unwrap();
+        assert_eq!(16777214, mask.hosts());
     }
 }
