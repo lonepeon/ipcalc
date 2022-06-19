@@ -5,18 +5,18 @@ fn main() {
         Ok(cidr) => {
             println!(
                 "Address:   {:15}      {:b}",
-                format!("{}", cidr.ip),
-                cidr.ip
+                format!("{}", cidr.ip()),
+                cidr.ip()
             );
             println!(
                 "Netmask:   {:20} {:b}",
-                format!("{} = {}", cidr.mask, cidr.mask.len()),
-                cidr.mask,
+                format!("{} = {}", cidr.mask(), cidr.mask().len()),
+                cidr.mask(),
             );
             println!(
                 "Wildcard:  {:15}      {:b}",
-                format!("{}", cidr.mask.wildcard()),
-                cidr.mask.wildcard(),
+                format!("{}", cidr.wildcard_mask()),
+                cidr.wildcard_mask(),
             );
 
             println!("=>");
@@ -24,7 +24,7 @@ fn main() {
             println!(
                 "Network:   {:18}   {:b}",
                 format!("{}", cidr.network()),
-                cidr.network().ip
+                cidr.network().ip(),
             );
             println!(
                 "HostMin:   {:18}   {:b}",

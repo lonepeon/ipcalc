@@ -12,8 +12,8 @@ pub enum CIDRParsingError {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct CIDR {
-    pub ip: IPv4,
-    pub mask: Mask,
+    ip: IPv4,
+    mask: Mask,
 }
 
 impl fmt::Display for CIDR {
@@ -53,6 +53,18 @@ impl CIDR {
             ip: self.mask.network_address(&self.ip),
             mask: self.mask,
         }
+    }
+
+    pub fn ip(&self) -> IPv4 {
+        IPv4::new_from_raw_bytes(self.ip.octets())
+    }
+
+    pub fn mask(&self) -> Mask {
+        self.mask
+    }
+
+    pub fn wildcard_mask(&self) -> Mask {
+        self.mask.wildcard()
     }
 
     pub fn first_address(&self) -> IPv4 {
