@@ -10,11 +10,11 @@ setup: .git/hooks/pre-commit
 
 .PHONY: test-unit
 test-unit:
-	$(CARGO_BIN) test
+	$(CARGO_BIN) test --verbose
 
 .PHONY: test-style
 test-style:
-	$(CARGO_BIN) fmt --check
+	$(CARGO_BIN) fmt --all -- --check
 
 .PHONY: test-lint
 test-lint:
