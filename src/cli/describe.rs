@@ -120,3 +120,20 @@ impl<W: std::io::Write> CLI<W> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    #[test]
+    fn describe_class_a() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        cli.execute(vec!["10.12.23.43/20".to_string()]).unwrap();
+
+        let expected_output = fs::read_to_string("src/cli/testdata/describe.golden").unwrap();
+        let actual_output = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected_output, actual_output);
+    }
+}
