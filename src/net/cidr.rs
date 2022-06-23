@@ -94,6 +94,19 @@ impl CIDR {
     pub fn kind(&self) -> IPKind {
         self.ip.kind()
     }
+
+    pub fn split(&self, mask: Mask) -> Vec<Self> {
+        let base_raw_network_ip = self.network().ip.octets();
+        let mut networks = Vec::new();
+
+        let mut raw_network_ip = base_raw_network_ip;
+        while raw_network_ip < base_raw_network_ip + self.mask.hosts() {
+            networks.push(Self::new(IPv4::new_from_raw_bytes(raw_network_ip), mask));
+            raw_network_ip += mask.hosts() + 2;
+        }
+
+        networks
+    }
 }
 
 #[cfg(test)]
@@ -184,5 +197,30 @@ mod tests {
         let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
 
         assert_eq!(IPKind::Private, address.kind())
+    }
+
+    #[test]
+    fn split() {
+        let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+
+        let new_mask = Mask::new(20).unwrap();
+        let expected = vec![CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(20).unwrap())];
+        assert_eq!(expected, address.split(new_mask));
+
+        let new_mask = Mask::new(25).unwrap();
+        let expected = vec![
+            CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(25).unwrap()),
+            CIDR::new(IPv4::new(10, 0, 10, 128), Mask::new(25).unwrap()),
+        ];
+        assert_eq!(expected, address.split(new_mask));
+
+        let new_mask = Mask::new(26).unwrap();
+        let expected = vec![
+            CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(26).unwrap()),
+            CIDR::new(IPv4::new(10, 0, 10, 64), Mask::new(26).unwrap()),
+            CIDR::new(IPv4::new(10, 0, 10, 128), Mask::new(26).unwrap()),
+            CIDR::new(IPv4::new(10, 0, 10, 192), Mask::new(26).unwrap()),
+        ];
+        assert_eq!(expected, address.split(new_mask));
     }
 }

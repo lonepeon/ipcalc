@@ -7,8 +7,14 @@ pub enum MaskParsingError {
     InvalidFormat,
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub struct Mask(u32);
+
+impl fmt::Debug for Mask {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "/{}", self.len())
+    }
+}
 
 impl fmt::Display for Mask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
