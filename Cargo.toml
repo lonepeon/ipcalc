@@ -2,7 +2,8 @@
 name = "ipcalc"
 version = "0.1.0"
 edition = "2021"
-description = "ipcalc provides a simple way to calculate IP information for a host"
+description = "ipcalc provides a simple way to display information about an IP and its network"
 license = "MIT"
 
 [dependencies]
+clap = { version = "3.2.6", features = ["derive"] }

@@ -26,14 +26,12 @@ impl<W: std::io::Write> CLI<W> {
         write!(&mut self.out, "{}", d).unwrap();
     }
 
-    pub fn execute(&mut self, args: Vec<String>) -> Result<(), ErrorKind> {
-        if args.len() != 1 {
-            return Err(ErrorKind::InvalidInput(
-                "expecting only one CIDR as argument".to_string(),
-            ));
+    pub fn execute(&mut self, raw_cidr: String) -> Result<(), ErrorKind> {
+        if raw_cidr.is_empty() {
+            return Err(ErrorKind::InvalidInput("expecting an argument".to_string()));
         }
 
-        match args[0].parse::<CIDR>() {
+        match raw_cidr.parse::<CIDR>() {
             Ok(cidr) => {
                 self.write(format!("Address:   {:15}      ", format!("{}", cidr.ip())));
                 self.write_if_binary(format!("{:b}", cidr.ip()));
@@ -115,7 +113,7 @@ impl<W: std::io::Write> CLI<W> {
                 "masklength must be between 0 and 32".to_string(),
             )),
             Err(CIDRParsingError::InvalidHostFormat) => Err(ErrorKind::InvalidInput(
-                "host must use aaa.bbb.ccc.ddd format".to_string(),
+                "invalid IPv4 CIDR format".to_string(),
             )),
         }
     }
@@ -129,7 +127,7 @@ mod tests {
     fn describe_class_a() {
         let mut output = Vec::new();
         let mut cli = super::CLI::new(&mut output);
-        cli.execute(vec!["10.12.23.43/20".to_string()]).unwrap();
+        cli.execute("10.12.23.43/20".to_string()).unwrap();
 
         let expected_output = fs::read_to_string("src/cli/testdata/describe.golden").unwrap();
         let actual_output = String::from_utf8(output).unwrap();
