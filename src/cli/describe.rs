@@ -1,6 +1,6 @@
-use crate::net::{CIDRParsingError, CIDR};
-
+use crate::cli::cidr_describer::CIDRDescriber;
 use crate::cli::ErrorKind;
+use crate::net::{CIDRParsingError, CIDR};
 
 pub struct CLI<W: std::io::Write> {
     pub out: W,
@@ -15,17 +15,6 @@ impl<W: std::io::Write> CLI<W> {
         }
     }
 
-    fn write<D: std::fmt::Display>(&mut self, d: D) {
-        write!(&mut self.out, "{}", d).unwrap();
-    }
-
-    fn write_if_binary<D: std::fmt::Display>(&mut self, d: D) {
-        if !self.with_binary {
-            return;
-        }
-        write!(&mut self.out, "{}", d).unwrap();
-    }
-
     pub fn execute(&mut self, raw_cidr: String) -> Result<(), ErrorKind> {
         if raw_cidr.is_empty() {
             return Err(ErrorKind::InvalidInput("expecting an argument".to_string()));
@@ -33,79 +22,15 @@ impl<W: std::io::Write> CLI<W> {
 
         match raw_cidr.parse::<CIDR>() {
             Ok(cidr) => {
-                self.write(format!("Address:   {:15}      ", format!("{}", cidr.ip())));
-                self.write_if_binary(format!("{:b}", cidr.ip()));
-                self.write("\n");
-
-                self.write(format!(
-                    "Netmask:   {:20} ",
-                    format!("{} = {}", cidr.mask(), cidr.mask().len())
-                ));
-                self.write_if_binary(format!("{:b}", cidr.mask()));
-                self.write("\n");
-
-                self.write(format!(
-                    "Wildcard:  {:15}      ",
-                    format!("{}", cidr.wildcard_mask())
-                ));
-                self.write_if_binary(format!("{:b}", cidr.wildcard_mask()));
-                self.write("\n");
-
-                self.write("=>\n");
-
-                self.write(format!(
-                    "Network:   {:18}   ",
-                    format!("{}", cidr.network())
-                ));
-                self.write_if_binary(format!("{:b}", cidr.network().ip()));
-                self.write("\n");
-
-                self.write(format!(
-                    "HostMin:   {:18}   ",
-                    cidr.first_address()
-                        .map(|ip| format!("{}", ip))
-                        .unwrap_or_else(|| "n/a".to_string()),
-                ));
-                self.write_if_binary(
-                    cidr.first_address()
-                        .map(|ip| format!("{:b}", ip))
-                        .unwrap_or_else(|| "".to_string()),
-                );
-                self.write("\n");
-
-                self.write(format!(
-                    "HostMax:   {:18}   ",
-                    cidr.last_address()
-                        .map(|ip| format!("{}", ip))
-                        .unwrap_or_else(|| "n/a".to_string()),
-                ));
-                self.write_if_binary(
-                    cidr.last_address()
-                        .map(|ip| format!("{:b}", ip))
-                        .unwrap_or_else(|| "".to_string()),
-                );
-                self.write("\n");
-
-                self.write(format!(
-                    "Broadcast: {:18}   ",
-                    cidr.broadcast_address()
-                        .map(|ip| format!("{}", ip))
-                        .unwrap_or_else(|| "n/a".to_string()),
-                ));
-                self.write_if_binary(
-                    cidr.broadcast_address()
-                        .map(|ip| format!("{:b}", ip))
-                        .unwrap_or_else(|| "".to_string()),
-                );
-                self.write("\n");
-
-                self.write(format!(
-                    "Hosts/Net: {:10}           class {}, {}",
-                    format!("{}", cidr.hosts()),
-                    cidr.class(),
-                    cidr.kind(),
-                ));
-                self.write("\n");
+                write!(
+                    self.out,
+                    "{}",
+                    CIDRDescriber {
+                        cidr,
+                        with_binary: self.with_binary
+                    }
+                )
+                .unwrap();
 
                 Ok(())
             }
