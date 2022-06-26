@@ -8,7 +8,6 @@ use core::fmt;
 pub enum CIDRComparison {
     Subset,
     Superset,
-    Contains,
     Equals,
     Different,
 }

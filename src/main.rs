@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use ipcalc::cli::{describe, split, ErrorKind};
+use ipcalc::cli::{compare, describe, split, ErrorKind};
 
 #[derive(Subcommand, Debug)]
 enum CLICommand {
@@ -22,6 +22,13 @@ enum CLICommand {
         /// Hide the binary representation when display the CIDR information
         #[clap(long)]
         no_binary: bool,
+    },
+    /// Compare two CIDR and displays the relationship between each other
+    Compare {
+        /// Any valid host or network IPv4 CIDR. If an host CIDR is given, its related network will be used.
+        cidr: String,
+        /// Any valid host or network IPv4 CIDR. If an host CIDR is given, its related network will be used.
+        other: String,
     },
 }
 
@@ -49,6 +56,10 @@ fn main() {
             let mut cli = split::CLI::new(std::io::stdout());
             cli.with_binary = !no_binary;
             exec(cli.execute(cidr, new_mask))
+        }
+        CLICommand::Compare { cidr, other } => {
+            let mut cli = compare::CLI::new(std::io::stdout());
+            exec(cli.execute(cidr, other))
         }
     }
 }
