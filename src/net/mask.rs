@@ -7,7 +7,7 @@ pub enum MaskParsingError {
     InvalidFormat,
 }
 
-#[derive(PartialEq, Eq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone, PartialOrd)]
 pub struct Mask(u32);
 
 impl fmt::Debug for Mask {

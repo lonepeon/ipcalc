@@ -5,6 +5,15 @@ use crate::net::Mask;
 use core::fmt;
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum CIDRComparison {
+    Subset,
+    Superset,
+    Contains,
+    Equals,
+    Different,
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum CIDRParsingError {
     InvalidMaskLength,
     InvalidHostFormat,
@@ -111,11 +120,37 @@ impl CIDR {
 
         networks
     }
+
+    fn contains(&self, other: &IPv4) -> bool {
+        let start = self.network_address().ip.octets();
+        let end = self.broadcast_address().map(|ip| ip.octets());
+        if None == end {
+            return false;
+        }
+        let other_ip = other.octets();
+
+        start <= other_ip && other_ip <= end.unwrap()
+    }
+
+    pub fn compare(&self, other: &CIDR) -> CIDRComparison {
+        let network = self.network_address();
+        let other_network = other.network_address();
+
+        if network == other_network {
+            CIDRComparison::Equals
+        } else if self.mask < other.mask && network.contains(&other.ip()) {
+            CIDRComparison::Superset
+        } else if other.mask < self.mask && other_network.contains(&self.ip()) {
+            CIDRComparison::Subset
+        } else {
+            CIDRComparison::Different
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CIDRParsingError, CIDR};
+    use super::{CIDRComparison, CIDRParsingError, CIDR};
     use crate::net::{IPClass, IPKind, IPv4, Mask};
 
     #[test]
@@ -235,5 +270,22 @@ mod tests {
 
         let network_address = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
         assert_eq!(true, network_address.is_network_address());
+    }
+
+    #[test]
+    fn compare() {
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 5), Mask::new(24).unwrap());
+        assert_eq!(CIDRComparison::Equals, base_address.compare(&compared));
+
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(26).unwrap());
+        assert_eq!(CIDRComparison::Superset, base_address.compare(&compared));
+
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 5), Mask::new(20).unwrap());
+        assert_eq!(CIDRComparison::Subset, base_address.compare(&compared));
+
+        let compared = CIDR::new(IPv4::new(10, 2, 10, 5), Mask::new(24).unwrap());
+        assert_eq!(CIDRComparison::Different, base_address.compare(&compared));
     }
 }
