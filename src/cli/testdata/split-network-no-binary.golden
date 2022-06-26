@@ -1,0 +1,40 @@
+========
+Address:   10.13.5.0            
+Netmask:   255.255.255.192 = 26 
+Wildcard:  0.0.0.63             
+=>
+Network:   10.13.5.0/26         
+HostMin:   10.13.5.1            
+HostMax:   10.13.5.62           
+Broadcast: 10.13.5.63           
+Hosts/Net: 62                   class A, Private Internet
+========
+Address:   10.13.5.64           
+Netmask:   255.255.255.192 = 26 
+Wildcard:  0.0.0.63             
+=>
+Network:   10.13.5.64/26        
+HostMin:   10.13.5.65           
+HostMax:   10.13.5.126          
+Broadcast: 10.13.5.127          
+Hosts/Net: 62                   class A, Private Internet
+========
+Address:   10.13.5.128          
+Netmask:   255.255.255.192 = 26 
+Wildcard:  0.0.0.63             
+=>
+Network:   10.13.5.128/26       
+HostMin:   10.13.5.129          
+HostMax:   10.13.5.190          
+Broadcast: 10.13.5.191          
+Hosts/Net: 62                   class A, Private Internet
+========
+Address:   10.13.5.192          
+Netmask:   255.255.255.192 = 26 
+Wildcard:  0.0.0.63             
+=>
+Network:   10.13.5.192/26       
+HostMin:   10.13.5.193          
+HostMax:   10.13.5.254          
+Broadcast: 10.13.5.255          
+Hosts/Net: 62                   class A, Private Internet

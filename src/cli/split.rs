@@ -1,4 +1,4 @@
-use crate::cli::cidr_describer::CIDRDescriber;
+use crate::cli::cidr_formatter::CIDFormatter;
 use crate::cli::ErrorKind;
 use crate::net::{CIDRParsingError, CIDR};
 use crate::net::{Mask, MaskParsingError};
@@ -57,13 +57,26 @@ impl<W: std::io::Write> CLI<W> {
             }
         };
 
+        if !cidr.is_network_address() {
+            write!(
+                self.out,
+                "{}",
+                CIDFormatter {
+                    cidr: CIDR::new(cidr.ip(), new_mask),
+                    with_binary: self.with_binary
+                }
+            )
+            .unwrap();
+            return Ok(());
+        }
+
         for cidr in cidr.split(new_mask) {
             writeln!(self.out, "========").unwrap();
 
             write!(
                 self.out,
                 "{}",
-                CIDRDescriber {
+                CIDFormatter {
                     cidr,
                     with_binary: self.with_binary
                 }
@@ -80,13 +93,56 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn split_slash_24_to_26() {
+    fn split_host_slash_24_to_26() {
         let mut output = Vec::new();
         let mut cli = super::CLI::new(&mut output);
-        cli.execute("10.13.5.14/24".to_string(), "26".to_string())
+        cli.execute("10.13.5.78/24".to_string(), "26".to_string())
             .unwrap();
 
-        let expected_output = fs::read_to_string("src/cli/testdata/split.golden").unwrap();
+        let expected_output = fs::read_to_string("src/cli/testdata/split-host.golden").unwrap();
+        let actual_output = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected_output, actual_output);
+    }
+
+    #[test]
+    fn split_host_slash_24_to_26_no_binary() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        cli.with_binary = false;
+        cli.execute("10.13.5.78/24".to_string(), "26".to_string())
+            .unwrap();
+
+        let expected_output =
+            fs::read_to_string("src/cli/testdata/split-host-no-binary.golden").unwrap();
+        let actual_output = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected_output, actual_output);
+    }
+
+    #[test]
+    fn split_network_slash_24_to_26() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        cli.execute("10.13.5.0/24".to_string(), "26".to_string())
+            .unwrap();
+
+        let expected_output = fs::read_to_string("src/cli/testdata/split-network.golden").unwrap();
+        let actual_output = String::from_utf8(output).unwrap();
+
+        assert_eq!(expected_output, actual_output);
+    }
+
+    #[test]
+    fn split_network_slash_24_to_26_no_binary() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        cli.with_binary = false;
+        cli.execute("10.13.5.0/24".to_string(), "26".to_string())
+            .unwrap();
+
+        let expected_output =
+            fs::read_to_string("src/cli/testdata/split-network-no-binary.golden").unwrap();
         let actual_output = String::from_utf8(output).unwrap();
 
         assert_eq!(expected_output, actual_output);

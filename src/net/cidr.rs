@@ -18,7 +18,7 @@ pub struct CIDR {
 
 impl fmt::Display for CIDR {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}/{}", self.ip, self.mask.len())
+        write!(f, "{}/{}", self.ip, self.mask.prefix_length())
     }
 }
 
@@ -52,9 +52,9 @@ impl CIDR {
         Self { ip, mask }
     }
 
-    pub fn network(&self) -> CIDR {
+    pub fn network_address(&self) -> CIDR {
         CIDR {
-            ip: self.mask.prefix(&self.ip),
+            ip: self.mask.network_address(&self.ip),
             mask: self.mask,
         }
     }
@@ -69,6 +69,10 @@ impl CIDR {
 
     pub fn wildcard_mask(&self) -> Mask {
         self.mask.wildcard()
+    }
+
+    pub fn is_network_address(&self) -> bool {
+        &self.network_address() == self
     }
 
     pub fn first_address(&self) -> Option<IPv4> {
@@ -96,7 +100,7 @@ impl CIDR {
     }
 
     pub fn split(&self, mask: Mask) -> Vec<Self> {
-        let base_raw_network_ip = self.network().ip.octets();
+        let base_raw_network_ip = self.network_address().ip.octets();
         let mut networks = Vec::new();
 
         let mut raw_network_ip = base_raw_network_ip;
@@ -147,11 +151,11 @@ mod tests {
     }
 
     #[test]
-    fn network() {
+    fn network_address() {
         let address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
         let expected = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
 
-        assert_eq!(expected, address.network())
+        assert_eq!(expected, address.network_address())
     }
 
     #[test]
@@ -222,5 +226,14 @@ mod tests {
             CIDR::new(IPv4::new(10, 0, 10, 192), Mask::new(26).unwrap()),
         ];
         assert_eq!(expected, address.split(new_mask));
+    }
+
+    #[test]
+    fn is_network_address() {
+        let host_address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(24).unwrap());
+        assert_eq!(false, host_address.is_network_address());
+
+        let network_address = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
+        assert_eq!(true, network_address.is_network_address());
     }
 }

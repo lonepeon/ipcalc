@@ -12,7 +12,7 @@ pub struct Mask(u32);
 
 impl fmt::Debug for Mask {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "/{}", self.len())
+        write!(f, "/{}", self.prefix_length())
     }
 }
 
@@ -55,7 +55,7 @@ impl Mask {
         Ok(Self(mask))
     }
 
-    pub fn len(&self) -> u8 {
+    pub fn prefix_length(&self) -> u8 {
         let mut zeroes = 0;
         for i in 0..32 {
             if self.0 >> i & 1 == 0 {
@@ -73,13 +73,13 @@ impl Mask {
         Mask(!self.0)
     }
 
-    pub fn prefix(&self, ip: &IPv4) -> IPv4 {
+    pub fn network_address(&self, ip: &IPv4) -> IPv4 {
         let network_address = ip.octets() & self.0;
         IPv4::new_from_raw_bytes(network_address)
     }
 
     pub fn first_address(&self, ip: &IPv4) -> Option<IPv4> {
-        if self.len() >= 31 {
+        if self.prefix_length() >= 31 {
             return None;
         }
 
@@ -88,7 +88,7 @@ impl Mask {
     }
 
     pub fn last_address(&self, ip: &IPv4) -> Option<IPv4> {
-        if self.len() >= 31 {
+        if self.prefix_length() >= 31 {
             return None;
         }
 
@@ -97,7 +97,7 @@ impl Mask {
     }
 
     pub fn broadcast_address(&self, ip: &IPv4) -> Option<IPv4> {
-        if self.len() >= 31 {
+        if self.prefix_length() >= 31 {
             return None;
         }
 
@@ -106,7 +106,7 @@ impl Mask {
     }
 
     pub fn hosts(&self) -> u32 {
-        if self.len() == 32 {
+        if self.prefix_length() == 32 {
             return 1;
         }
         self.wildcard().0 - 1
@@ -165,8 +165,8 @@ mod tests {
     }
 
     #[test]
-    fn get_mask_len() {
-        assert_eq!(24, Mask::new(24).unwrap().len())
+    fn prefix_length() {
+        assert_eq!(24, Mask::new(24).unwrap().prefix_length())
     }
 
     #[test]
@@ -179,23 +179,32 @@ mod tests {
     }
 
     #[test]
-    fn prefix() {
+    fn network_address() {
         let host_address = IPv4::new(10, 42, 180, 53);
 
         let mask = Mask::new(32).unwrap();
-        assert_eq!(IPv4::new(10, 42, 180, 53), mask.prefix(&host_address));
+        assert_eq!(
+            IPv4::new(10, 42, 180, 53),
+            mask.network_address(&host_address)
+        );
 
         let mask = Mask::new(24).unwrap();
-        assert_eq!(IPv4::new(10, 42, 180, 0), mask.prefix(&host_address));
+        assert_eq!(
+            IPv4::new(10, 42, 180, 0),
+            mask.network_address(&host_address)
+        );
 
         let mask = Mask::new(20).unwrap();
-        assert_eq!(IPv4::new(10, 42, 176, 0), mask.prefix(&host_address));
+        assert_eq!(
+            IPv4::new(10, 42, 176, 0),
+            mask.network_address(&host_address)
+        );
 
         let mask = Mask::new(16).unwrap();
-        assert_eq!(IPv4::new(10, 42, 0, 0), mask.prefix(&host_address));
+        assert_eq!(IPv4::new(10, 42, 0, 0), mask.network_address(&host_address));
 
         let mask = Mask::new(0).unwrap();
-        assert_eq!(IPv4::new(0, 0, 0, 0), mask.prefix(&host_address));
+        assert_eq!(IPv4::new(0, 0, 0, 0), mask.network_address(&host_address));
     }
 
     #[test]

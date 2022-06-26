@@ -1,12 +1,12 @@
 use crate::net::CIDR;
 use core::fmt;
 
-pub struct CIDRDescriber {
+pub struct CIDFormatter {
     pub cidr: CIDR,
     pub with_binary: bool,
 }
 
-impl fmt::Display for CIDRDescriber {
+impl fmt::Display for CIDFormatter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Address:   {:15}      ", format!("{}", self.cidr.ip()))?;
         if self.with_binary {
@@ -17,7 +17,11 @@ impl fmt::Display for CIDRDescriber {
         write!(
             f,
             "Netmask:   {:20} ",
-            format!("{} = {}", self.cidr.mask(), self.cidr.mask().len())
+            format!(
+                "{} = {}",
+                self.cidr.mask(),
+                self.cidr.mask().prefix_length()
+            )
         )?;
         if self.with_binary {
             write!(f, "{:b}", self.cidr.mask())?;
@@ -36,9 +40,13 @@ impl fmt::Display for CIDRDescriber {
 
         writeln!(f, "=>")?;
 
-        write!(f, "Network:   {:18}   ", format!("{}", self.cidr.network()))?;
+        write!(
+            f,
+            "Network:   {:18}   ",
+            format!("{}", self.cidr.network_address())
+        )?;
         if self.with_binary {
-            write!(f, "{:b}", self.cidr.network().ip())?;
+            write!(f, "{:b}", self.cidr.network_address().ip())?;
         }
         writeln!(f)?;
 

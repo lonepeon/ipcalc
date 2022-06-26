@@ -1,4 +1,4 @@
-mod cidr_describer;
+mod cidr_formatter;
 pub mod describe;
 mod errors;
 pub mod split;

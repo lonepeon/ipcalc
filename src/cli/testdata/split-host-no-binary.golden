@@ -1,0 +1,9 @@
+Address:   10.13.5.78           
+Netmask:   255.255.255.192 = 26 
+Wildcard:  0.0.0.63             
+=>
+Network:   10.13.5.64/26        
+HostMin:   10.13.5.65           
+HostMax:   10.13.5.126          
+Broadcast: 10.13.5.127          
+Hosts/Net: 62                   class A, Private Internet
