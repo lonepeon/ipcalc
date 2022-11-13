@@ -1,3 +1,3 @@
 #! /usr/bin/env bash
 
-make test-style test-lint test-unit
+make test-unit test-lint
