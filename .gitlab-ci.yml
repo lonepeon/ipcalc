@@ -1,0 +1,9 @@
+image: rust:1.64.0
+
+compile-test-job:
+  script:
+    - rustup component add clippy rustfmt
+    - cargo build --verbose
+    - cargo test --verbose
+    - cargo fmt --all -- --check
+    - cargo clippy -- -Dwarnings
