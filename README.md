@@ -24,18 +24,17 @@ Documentation is available using `ipcalc help <command>`
 ```
 ipcalc provides a simple way to display information about an IP and its network
 
-USAGE:
-    ipcalc <SUBCOMMAND>
+Usage: ipcalc <COMMAND>
 
-OPTIONS:
+Commands:
+    describe    Display host and network related information about the IPv4 CIDR
+    split       Subdivide the CIDR in smaller networks and display them
+    compare     Compare two CIDRs and display the relationship between them
+    help        Print this message or the help of the given subcommand(s)
+
+Options:
     -h, --help       Print help information
     -V, --version    Print version information
-
-SUBCOMMANDS:
-    compare     Compare two CIDRs and display the relationship between them
-    describe    Display host and network related information about the IPv4 CIDR
-    help        Print this message or the help of the given subcommand(s)
-    split       Subdivide the CIDR in smaller networks and display them
 ```
 
 #### Describe a CIDR
@@ -43,15 +42,14 @@ SUBCOMMANDS:
 ```
 Display host and network related information about the IPv4 CIDR
 
-USAGE:
-    ipcalc describe [OPTIONS] <CIDR>
+Usage: ipcalc describe [OPTIONS] <CIDR>
 
-ARGS:
+Arguments:
     <CIDR>    Any valid host or network IPv4 CIDR
 
-OPTIONS:
-    -h, --help         Print help information
+Options:
         --no-binary    Hide the binary representation
+    -h, --help         Print help information (use `-h` for a summary)
 ```
 
 #### Compare two CIDRs
@@ -60,17 +58,16 @@ OPTIONS:
 Compare two CIDRs and display the relationship between the first and second CIDR:
 same network, different network, subset or superset
 
-USAGE:
-    ipcalc compare <CIDR> <OTHER>
+Usage: ipcalc compare <CIDR> <OTHER>
 
-ARGS:
+Arguments:
     <CIDR>     Any valid host or network IPv4 CIDR.
                If an host CIDR is given, its related network will be used.
     <OTHER>    Any valid host or network IPv4 CIDR.
                If an host CIDR is given, its related network will be used.
 
-OPTIONS:
-    -h, --help    Print help information
+Options:
+    -h, --help    Print help information (use `-h` for a summary)
 ```
 
 #### Split a CIDR in smaller networks
@@ -81,14 +78,13 @@ Subdivide the CIDR in smaller networks and display them
 If the CIDR is a network address: display all available sub-networks
 If the CIDR is a host address: display the new network in which the IP belongs
 
-USAGE:
-    ipcalc split [OPTIONS] <CIDR> <NEW_MASK>
+Usage: ipcalc split [OPTIONS] <CIDR> <NEW_MASK>
 
-ARGS:
+Arguments:
     <CIDR>        Any valid host or network IPv4 CIDR
     <NEW_MASK>    New prefix length to apply to the CIDR
 
-OPTIONS:
-    -h, --help         Print help information
+Options:
+    -h, --help         Print help information (use `-h` for a summary)
         --no-binary    Hide the binary representation
 ```
