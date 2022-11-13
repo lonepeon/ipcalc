@@ -3,31 +3,27 @@ use ipcalc::cli::{compare, describe, split, ErrorKind};
 
 #[derive(Subcommand, Debug)]
 enum CLICommand {
-    /// Details all the information about the CIDR
+    #[clap(about=DESCRIBE_HELP)]
     Describe {
-        /// Any valid host or network IPv4 CIDR
+        #[clap(help=DESCRIBE_CIDR_HELP)]
         cidr: String,
-        /// Hide the binary representation when display the CIDR information
-        #[clap(long)]
+        #[clap(help=DESCRIBE_NO_BINARY_HELP, long)]
         no_binary: bool,
     },
-    /// Subdivide the CIDR to create networks of MASK size and displays all resulting networks
+    #[clap(about=SPLIT_HELP, long_about=SPLIT_LONG_HELP)]
     Split {
-        /// Any valid host or network IPv4 CIDR
+        #[clap(help=SPLIT_CIDR_HELP)]
         cidr: String,
-        /// New prefix length to apply to the IPv4 CIDR.
-        /// If the CIDR is a host address, displays the network in which it would be with the new mask.
-        /// If the CIDR is a network address, displays all sub-networks using the new mask
+        #[clap(help=SPLIT_NEW_MASK)]
         new_mask: String,
-        /// Hide the binary representation when display the CIDR information
-        #[clap(long)]
+        #[clap(help=SPLIT_NO_BINARY_HELP, long)]
         no_binary: bool,
     },
-    /// Compare two CIDR and displays the relationship between each other
+    #[clap(about=COMPARE_HELP, long_about=COMPARE_LONG_HELP)]
     Compare {
-        /// Any valid host or network IPv4 CIDR. If an host CIDR is given, its related network will be used.
+        #[clap(help=COMPARE_CIDR_HELP)]
         cidr: String,
-        /// Any valid host or network IPv4 CIDR. If an host CIDR is given, its related network will be used.
+        #[clap(help=COMPARE_CIDR_OTHER_HELP)]
         other: String,
     },
 }
@@ -73,3 +69,26 @@ fn exec(rst: Result<(), ErrorKind>) {
         }
     }
 }
+
+static DESCRIBE_HELP: &str = "Display host and network related information about the IPv4 CIDR";
+static DESCRIBE_CIDR_HELP: &str = "Any valid host or network IPv4 CIDR";
+static DESCRIBE_NO_BINARY_HELP: &str = "Hide the binary representation";
+
+static SPLIT_HELP: &str = "Subdivide the CIDR in smaller networks and display them";
+static SPLIT_LONG_HELP: &str = "Subdivide the CIDR in smaller networks and display them
+
+If the CIDR is a network address: display all available sub-networks
+If the CIDR is a host address: display the new network in which the IP belongs
+";
+static SPLIT_CIDR_HELP: &str = DESCRIBE_CIDR_HELP;
+static SPLIT_NEW_MASK: &str = "New prefix length to apply to the CIDR
+";
+static SPLIT_NO_BINARY_HELP: &str = DESCRIBE_NO_BINARY_HELP;
+
+static COMPARE_HELP: &str = "Compare two CIDRs and display the relationship between them";
+static COMPARE_LONG_HELP: &str =
+    "Compare two CIDRs and display the relationship between the first and second CIDR:
+same network, different network, subset or superset";
+static COMPARE_CIDR_HELP: &str = "Any valid host or network IPv4 CIDR.
+If an host CIDR is given, its related network will be used.";
+static COMPARE_CIDR_OTHER_HELP: &str = COMPARE_CIDR_HELP;
