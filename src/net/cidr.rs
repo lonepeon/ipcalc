@@ -123,7 +123,7 @@ impl CIDR {
     fn contains(&self, other: &IPv4) -> bool {
         let start = self.network_address().ip.octets();
         let end = self.broadcast_address().map(|ip| ip.octets());
-        if None == end {
+        if end.is_none() {
             return false;
         }
         let other_ip = other.octets();
