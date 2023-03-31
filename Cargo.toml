@@ -6,4 +6,4 @@ description = "ipcalc provides a simple way to display information about an IP a
 license = "MIT"
 
 [dependencies]
-clap = { version = "4.0.18", features = ["derive"] }
+clap = { version = "4.2.1", features = ["derive"] }
