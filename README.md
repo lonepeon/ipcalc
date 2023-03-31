@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/lonepeon/ipcalc/branch/main/graph/badge.svg?token=HC7WSVDRO2)](https://codecov.io/gh/lonepeon/ipcalc)
+
 # ipcalc
 
 Small tool based on https://linux.die.net/man/1/ipcalc which describes the given IPv4.
