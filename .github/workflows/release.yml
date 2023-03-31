@@ -1,0 +1,26 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+  release:
+    permissions:
+      contents: write
+    name: ubuntu / release
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout code"
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: install stable
+        uses: dtolnay/rust-toolchain@stable
+      - name: build application
+        run: VERSION=${{ github.ref_name }} cargo build --verbose --release
+      - name: rename binary
+        run: mv target/release/ipcalc ipcalc-linux-amd64-${{ github.ref_name }}
+      - name: create release with binaries
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ipcalc-linux-amd64-${{ github.ref_name }}

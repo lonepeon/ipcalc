@@ -5,11 +5,6 @@
 .PHONY: setup
 setup: .git/hooks/pre-commit
 	rustup component add clippy
-	cargo install cargo-watch
-
-.PHONY: watch
-watch:
-	cargo watch --exec "fmt --all -- --check" --exec "clippy -- -Dwarnings" --exec test
 
 .PHONY: test-unit
 test-unit:
