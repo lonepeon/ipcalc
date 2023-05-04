@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use ipcalc::cli::{compare, describe, split, ErrorKind};
+use ipcalc::cli::{aggregate, compare, describe, split, ErrorKind};
 
 #[derive(Subcommand, Debug)]
 enum CLICommand {
@@ -26,6 +26,13 @@ enum CLICommand {
         #[clap(help=COMPARE_CIDR_OTHER_HELP)]
         other: String,
     },
+    #[clap(about=AGGREGATE_HELP, long_about=AGGREGATE_LONG_HELP)]
+    Aggregate {
+        #[clap(help=AGGREGATE_CIDR_HELP)]
+        cidr: String,
+        #[clap(help=AGGREGATE_MASK_HELP)]
+        mask: String,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -46,6 +53,9 @@ fn run() -> Result<(), ErrorKind> {
     let cli = Cli::parse();
 
     match cli.command {
+        CLICommand::Aggregate { cidr, mask } => {
+            aggregate::CLI::new(std::io::stdout()).execute(cidr, mask)
+        }
         CLICommand::Describe { cidr, no_binary } => {
             let mut cli = describe::CLI::new(std::io::stdout());
             cli.with_binary = !no_binary;
@@ -66,6 +76,18 @@ fn run() -> Result<(), ErrorKind> {
         }
     }
 }
+
+static AGGREGATE_HELP: &str =
+    "List all possible de/aggregation from a given CIDR to a specified MASK";
+static AGGREGATE_LONG_HELP: &str =
+    "List all possible de/aggregation from a given CIDR to a specified MASK
+
+If the MASK length is bigger, the IP won't change only the mask will
+If the MASK length is smaller, the IP will take the network address of the mask
+";
+
+static AGGREGATE_CIDR_HELP: &str = "Any valid host or network IPv4 CIDR";
+static AGGREGATE_MASK_HELP: &str = "Lower/Upper bound of the de/aggregation";
 
 static DESCRIBE_HELP: &str = "Display host and network related information about the IPv4 CIDR";
 static DESCRIBE_CIDR_HELP: &str = "Any valid host or network IPv4 CIDR";

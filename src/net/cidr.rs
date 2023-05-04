@@ -148,10 +148,10 @@ impl CIDR {
 
     pub fn aggregate(&self, mask: Mask) -> CIDR {
         let cidr = Self::new(IPv4::new_from_raw_bytes(self.ip.octets()), mask);
-        if mask > self.mask {
-            cidr
-        } else {
+        if mask < self.mask {
             cidr.network_address()
+        } else {
+            cidr
         }
     }
 }

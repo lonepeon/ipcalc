@@ -32,6 +32,7 @@ Commands:
     describe    Display host and network related information about the IPv4 CIDR
     split       Subdivide the CIDR in smaller networks and display them
     compare     Compare two CIDRs and display the relationship between them
+    aggregate   List all possible de/aggregation from a given CIDR to a specified MASK
     help        Print this message or the help of the given subcommand(s)
 
 Options:
@@ -89,4 +90,27 @@ Arguments:
 Options:
     -h, --help         Print help information (use `-h` for a summary)
         --no-binary    Hide the binary representation
+```
+
+#### Aggregate/Deaggregate a prefix
+
+```
+List all possible de/aggregation from a given CIDR to a specified MASK
+
+If the MASK length is bigger, the IP won't change only the mask will
+If the MASK length is smaller, the IP will take the network address of the mask
+
+
+Usage: ipcalc aggregate <CIDR> <MASK>
+
+Arguments:
+  <CIDR>
+          Any valid host or network IPv4 CIDR
+
+  <MASK>
+          Lower/Upper bound of the de/aggregation
+
+Options:
+  -h, --help
+          Print help (see a summary with '-h')
 ```
