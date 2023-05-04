@@ -145,6 +145,15 @@ impl CIDR {
             CIDRComparison::Different
         }
     }
+
+    pub fn aggregate(&self, mask: Mask) -> CIDR {
+        let cidr = Self::new(IPv4::new_from_raw_bytes(self.ip.octets()), mask);
+        if mask > self.mask {
+            cidr
+        } else {
+            cidr.network_address()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -286,5 +295,31 @@ mod tests {
 
         let compared = CIDR::new(IPv4::new(10, 2, 10, 5), Mask::new(24).unwrap());
         assert_eq!(CIDRComparison::Different, base_address.compare(&compared));
+    }
+
+    #[test]
+    fn aggregate() {
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 248), Mask::new(32).unwrap());
+
+        assert_eq!(
+            CIDR::new(IPv4::new(10, 0, 10, 248), Mask::new(31).unwrap()),
+            base_address.aggregate(Mask::new(31).unwrap())
+        );
+
+        assert_eq!(
+            CIDR::new(IPv4::new(10, 0, 10, 240), Mask::new(28).unwrap()),
+            base_address.aggregate(Mask::new(28).unwrap())
+        );
+
+        assert_eq!(
+            CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap()),
+            base_address.aggregate(Mask::new(24).unwrap())
+        );
+
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 248), Mask::new(24).unwrap());
+        assert_eq!(
+            CIDR::new(IPv4::new(10, 0, 10, 248), Mask::new(28).unwrap()),
+            base_address.aggregate(Mask::new(28).unwrap())
+        );
     }
 }
