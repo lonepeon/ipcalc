@@ -94,28 +94,19 @@ impl IPv4 {
         let octets = self.octets();
         let first_octet = (octets >> 24 & 0xFF) as u8;
         let second_octet = (octets >> 16 & 0xFF) as u8;
+        let third_octet = (octets >> 8 & 0xFF) as u8;
 
-        if first_octet == 10 {
-            return IPKind::Private;
+        match (first_octet, second_octet, third_octet) {
+            (10, _, _) => IPKind::Private,
+            (169, 254, _) => IPKind::Special("link-local"),
+            (172, 16..=31, _) => IPKind::Private,
+            (192, 168, _) => IPKind::Private,
+            (192, 0, 2) => IPKind::Special("documentation"),
+            (198, 51, 100) => IPKind::Special("documentation"),
+            (203, 0, 113) => IPKind::Special("documentation"),
+            (127, _, _) => IPKind::Special("localhost"),
+            _ => IPKind::Public,
         }
-
-        if first_octet == 169 && second_octet == 254 {
-            return IPKind::Private;
-        }
-
-        if first_octet == 172 && (16..=31).contains(&second_octet) {
-            return IPKind::Private;
-        }
-
-        if first_octet == 192 && second_octet == 168 {
-            return IPKind::Private;
-        }
-
-        if first_octet == 127 {
-            return IPKind::Special;
-        }
-
-        IPKind::Public
     }
 }
 
@@ -207,9 +198,6 @@ mod tests {
         let address = "10.255.5.1".parse::<IPv4>().unwrap();
         assert_eq!(IPKind::Private, address.kind());
 
-        let address = "169.254.5.1".parse::<IPv4>().unwrap();
-        assert_eq!(IPKind::Private, address.kind());
-
         let address = "172.16.5.1".parse::<IPv4>().unwrap();
         assert_eq!(IPKind::Private, address.kind());
         let address = "172.31.5.1".parse::<IPv4>().unwrap();
@@ -250,8 +238,22 @@ mod tests {
     #[test]
     fn kind_special() {
         let address = "127.0.9.1".parse::<IPv4>().unwrap();
-        assert_eq!(IPKind::Special, address.kind());
+        assert_eq!(IPKind::Special("localhost"), address.kind());
         let address = "127.255.5.1".parse::<IPv4>().unwrap();
-        assert_eq!(IPKind::Special, address.kind());
+        assert_eq!(IPKind::Special("localhost"), address.kind());
+        let address = "169.254.5.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("link-local"), address.kind());
+        let address = "192.0.2.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
+        let address = "192.0.2.254".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
+        let address = "198.51.100.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
+        let address = "198.51.100.254".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
+        let address = "203.0.113.1".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
+        let address = "203.0.113.254".parse::<IPv4>().unwrap();
+        assert_eq!(IPKind::Special("documentation"), address.kind());
     }
 }

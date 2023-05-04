@@ -36,13 +36,20 @@ struct Cli {
 }
 
 fn main() {
+    if let Err(ErrorKind::InvalidInput(err)) = run() {
+        eprintln!("{}", err);
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), ErrorKind> {
     let cli = Cli::parse();
 
     match cli.command {
         CLICommand::Describe { cidr, no_binary } => {
             let mut cli = describe::CLI::new(std::io::stdout());
             cli.with_binary = !no_binary;
-            exec(cli.execute(cidr))
+            cli.execute(cidr)
         }
         CLICommand::Split {
             cidr,
@@ -51,21 +58,11 @@ fn main() {
         } => {
             let mut cli = split::CLI::new(std::io::stdout());
             cli.with_binary = !no_binary;
-            exec(cli.execute(cidr, new_mask))
+            cli.execute(cidr, new_mask)
         }
         CLICommand::Compare { cidr, other } => {
             let mut cli = compare::CLI::new(std::io::stdout());
-            exec(cli.execute(cidr, other))
-        }
-    }
-}
-
-fn exec(rst: Result<(), ErrorKind>) {
-    match rst {
-        Ok(()) => {}
-        Err(ErrorKind::InvalidInput(reason)) => {
-            eprintln!("{}", reason);
-            std::process::exit(1);
+            cli.execute(cidr, other)
         }
     }
 }

@@ -4,17 +4,15 @@ use core::fmt;
 pub enum IPKind {
     Private,
     Public,
-    Special,
+    Special(&'static str),
 }
 
 impl fmt::Display for IPKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let val = match self {
-            IPKind::Private => "Private Internet",
-            IPKind::Public => "Public Internet",
-            IPKind::Special => "Special",
-        };
-
-        write!(f, "{}", val)
+        match self {
+            IPKind::Private => write!(f, "Private Internet"),
+            IPKind::Public => write!(f, "Public Internet"),
+            IPKind::Special(kind) => write!(f, "Special ({})", kind),
+        }
     }
 }
