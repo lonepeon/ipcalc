@@ -1,12 +1,12 @@
 use crate::net::CIDR;
 use core::fmt;
 
-pub struct CIDFormatter {
+pub struct CIDRFormatter {
     pub cidr: CIDR,
     pub with_binary: bool,
 }
 
-impl fmt::Display for CIDFormatter {
+impl fmt::Display for CIDRFormatter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Address:   {:15}      ", format!("{}", self.cidr.ip()))?;
         if self.with_binary {

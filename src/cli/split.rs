@@ -1,4 +1,4 @@
-use crate::cli::cidr_formatter::CIDFormatter;
+use crate::cli::cidr_formatter::CIDRFormatter;
 use crate::cli::ErrorKind;
 use crate::net::{CIDRParsingError, CIDR};
 use crate::net::{Mask, MaskParsingError};
@@ -61,7 +61,7 @@ impl<W: std::io::Write> CLI<W> {
             write!(
                 self.out,
                 "{}",
-                CIDFormatter {
+                CIDRFormatter {
                     cidr: CIDR::new(cidr.ip(), new_mask),
                     with_binary: self.with_binary
                 }
@@ -76,7 +76,7 @@ impl<W: std::io::Write> CLI<W> {
             write!(
                 self.out,
                 "{}",
-                CIDFormatter {
+                CIDRFormatter {
                     cidr,
                     with_binary: self.with_binary
                 }

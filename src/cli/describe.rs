@@ -1,4 +1,4 @@
-use crate::cli::cidr_formatter::CIDFormatter;
+use crate::cli::cidr_formatter::CIDRFormatter;
 use crate::cli::ErrorKind;
 use crate::net::{CIDRParsingError, CIDR};
 
@@ -25,7 +25,7 @@ impl<W: std::io::Write> CLI<W> {
                 write!(
                     self.out,
                     "{}",
-                    CIDFormatter {
+                    CIDRFormatter {
                         cidr,
                         with_binary: self.with_binary
                     }
