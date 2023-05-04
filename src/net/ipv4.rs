@@ -71,23 +71,13 @@ impl IPv4 {
         let octets = self.octets();
         let first_octet = (octets >> 24 & 0xFF) as u8;
 
-        if first_octet < 128 {
-            return IPClass::A;
+        match first_octet {
+            0..=127 => IPClass::A,
+            128..=191 => IPClass::B,
+            192..=223 => IPClass::C,
+            224..=239 => IPClass::D,
+            240.. => IPClass::E,
         }
-
-        if first_octet < 192 {
-            return IPClass::B;
-        }
-
-        if first_octet < 224 {
-            return IPClass::C;
-        }
-
-        if first_octet < 240 {
-            return IPClass::D;
-        }
-
-        IPClass::E
     }
 
     pub fn kind(&self) -> IPKind {
