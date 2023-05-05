@@ -308,6 +308,22 @@ mod tests {
 
         let compared = CIDR::new(IPv4::new(10, 2, 10, 5), Mask::new(24).unwrap());
         assert_eq!(CIDRComparison::Different, base_address.compare(&compared));
+
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 15), Mask::new(32).unwrap());
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
+        assert_eq!(CIDRComparison::Subset, base_address.compare(&compared));
+
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 0), Mask::new(24).unwrap());
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 12), Mask::new(32).unwrap());
+        assert_eq!(CIDRComparison::Superset, base_address.compare(&compared));
+
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 12), Mask::new(32).unwrap());
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 12), Mask::new(32).unwrap());
+        assert_eq!(CIDRComparison::Equals, base_address.compare(&compared));
+
+        let base_address = CIDR::new(IPv4::new(10, 0, 10, 12), Mask::new(32).unwrap());
+        let compared = CIDR::new(IPv4::new(10, 0, 10, 13), Mask::new(32).unwrap());
+        assert_eq!(CIDRComparison::Different, base_address.compare(&compared));
     }
 
     #[test]
