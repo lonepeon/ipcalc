@@ -186,6 +186,19 @@ mod tests {
     }
 
     #[test]
+    fn parse_success() {
+        assert_eq!(
+            Ok(CIDR::new(IPv4::new(10, 0, 5, 2), Mask::new(20).unwrap())),
+            "10.0.5.2/20".parse::<CIDR>(),
+        );
+
+        assert_eq!(
+            Ok(CIDR::new(IPv4::new(10, 0, 5, 2), Mask::new(32).unwrap())),
+            "10.0.5.2".parse::<CIDR>(),
+        )
+    }
+
+    #[test]
     fn parse_ip_contains_several_slashes() {
         assert_eq!(
             Err(CIDRParsingError::InvalidHostFormat),

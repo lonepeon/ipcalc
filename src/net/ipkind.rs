@@ -16,3 +16,24 @@ impl fmt::Display for IPKind {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn kind_private() {
+        assert_eq!("Private Internet", format!("{}", super::IPKind::Private))
+    }
+
+    #[test]
+    fn kind_public() {
+        assert_eq!("Public Internet", format!("{}", super::IPKind::Public))
+    }
+
+    #[test]
+    fn kind_special() {
+        assert_eq!(
+            "Special (something)",
+            format!("{}", super::IPKind::Special("something"))
+        )
+    }
+}

@@ -105,6 +105,15 @@ mod tests {
     use super::{IPClass, IPKind, IPParsingError, IPv4};
 
     #[test]
+    fn debug_display() {
+        let ip = IPv4::new(192, 168, 5, 42);
+        assert_eq!(
+            "192.168.5.42 (11000000.10101000.00000101.00101010)",
+            format!("{:?}", ip)
+        )
+    }
+
+    #[test]
     fn string_display() {
         let ip = IPv4::new(192, 168, 5, 42);
         assert_eq!("192.168.5.42", format!("{}", ip))

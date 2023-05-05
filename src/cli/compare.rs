@@ -1,4 +1,4 @@
-use crate::cli::cidr_parser;
+use crate::cli::arg_parser;
 use crate::cli::ErrorKind;
 use crate::net::CIDRComparison;
 
@@ -12,16 +12,8 @@ impl<W: std::io::Write> CLI<W> {
     }
 
     pub fn execute(&mut self, raw_cidr: String, raw_other: String) -> Result<(), ErrorKind> {
-        if raw_cidr.is_empty() {
-            return Err(ErrorKind::InvalidInput("expecting an argument".to_string()));
-        }
-
-        if raw_other.is_empty() {
-            return Err(ErrorKind::InvalidInput("expecting an argument".to_string()));
-        }
-
-        let cidr = cidr_parser::parser(raw_cidr)?;
-        let other = cidr_parser::parser(raw_other)?;
+        let cidr = arg_parser::parse_cidr("CIDR", raw_cidr)?;
+        let other = arg_parser::parse_cidr("OTHER_CIDR", raw_other)?;
         let description = match cidr.compare(&other) {
             CIDRComparison::Subset => "is a subset of",
             CIDRComparison::Superset => "is a superset of",
@@ -37,7 +29,90 @@ impl<W: std::io::Write> CLI<W> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use crate::cli::ErrorKind;
+
+    #[test]
+    fn compare_empty_cidr1() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("".to_string(), "10.12.25.99/24".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "expecting non empty CIDR argument".to_string()
+            )),
+            output
+        );
+    }
+
+    #[test]
+    fn compare_unparsable_cidr1() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("not a CIDR".to_string(), "10.12.25.99/24".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "invalid IPv4 CIDR format".to_string()
+            )),
+            output
+        );
+    }
+
+    #[test]
+    fn compare_invalid_mask_cidr1() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("10.12.23.43/200".to_string(), "10.12.25.99/24".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "masklength must be between 0 and 32".to_string()
+            )),
+            output
+        );
+    }
+
+    #[test]
+    fn compare_empty_cidr2() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("10.12.23.43/16".to_string(), "".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "expecting non empty OTHER_CIDR argument".to_string()
+            )),
+            output
+        );
+    }
+
+    #[test]
+    fn compare_unparsable_cidr2() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("10.12.23.43/16".to_string(), "not a CIDR".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "invalid IPv4 CIDR format".to_string()
+            )),
+            output
+        );
+    }
+    #[test]
+    fn compare_invalid_mask_cidr2() {
+        let mut output = Vec::new();
+        let mut cli = super::CLI::new(&mut output);
+        let output = cli.execute("10.12.23.43/16".to_string(), "10.12.25.99/200".to_string());
+
+        assert_eq!(
+            Err(ErrorKind::InvalidInput(
+                "masklength must be between 0 and 32".to_string()
+            )),
+            output
+        );
+    }
 
     #[test]
     fn on_superset() {
@@ -46,8 +121,7 @@ mod tests {
         cli.execute("10.12.23.43/16".to_string(), "10.12.25.99/24".to_string())
             .unwrap();
 
-        let expected_output =
-            fs::read_to_string("src/cli/testdata/compare-superset.golden").unwrap();
+        let expected_output = include_str!("testdata/compare-superset.golden");
         let actual_output = String::from_utf8(output).unwrap();
 
         assert_eq!(expected_output, actual_output);
@@ -60,7 +134,7 @@ mod tests {
         cli.execute("10.12.23.43/24".to_string(), "10.12.25.99/16".to_string())
             .unwrap();
 
-        let expected_output = fs::read_to_string("src/cli/testdata/compare-subset.golden").unwrap();
+        let expected_output = include_str!("testdata/compare-subset.golden");
         let actual_output = String::from_utf8(output).unwrap();
 
         assert_eq!(expected_output, actual_output);
@@ -73,7 +147,7 @@ mod tests {
         cli.execute("10.12.23.43/16".to_string(), "10.12.25.99/16".to_string())
             .unwrap();
 
-        let expected_output = fs::read_to_string("src/cli/testdata/compare-equals.golden").unwrap();
+        let expected_output = include_str!("testdata/compare-equals.golden");
         let actual_output = String::from_utf8(output).unwrap();
 
         assert_eq!(expected_output, actual_output);
@@ -86,8 +160,7 @@ mod tests {
         cli.execute("10.12.23.43/16".to_string(), "10.14.25.99/16".to_string())
             .unwrap();
 
-        let expected_output =
-            fs::read_to_string("src/cli/testdata/compare-different.golden").unwrap();
+        let expected_output = include_str!("testdata/compare-different.golden");
         let actual_output = String::from_utf8(output).unwrap();
 
         assert_eq!(expected_output, actual_output);

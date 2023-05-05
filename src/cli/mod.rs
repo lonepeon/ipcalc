@@ -1,6 +1,6 @@
 pub mod aggregate;
+mod arg_parser;
 mod cidr_formatter;
-mod cidr_parser;
 pub mod compare;
 pub mod describe;
 mod errors;

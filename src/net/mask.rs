@@ -119,6 +119,11 @@ mod tests {
     use crate::net::IPv4;
 
     #[test]
+    fn debug_display() {
+        assert_eq!("/24", format!("{:?}", Mask::new(24).unwrap()))
+    }
+
+    #[test]
     fn parse_mask_negative() {
         assert_eq!(Err(MaskParsingError::InvalidFormat), "-5".parse::<Mask>())
     }
